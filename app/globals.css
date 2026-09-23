@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
+/* ---- Design tokens: calm, adult, card-first ---- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f6f4;
+  --foreground: #1f2430;
+
+  --surface: #ffffff;
+  --surface-2: #f0f1ee;
+
+  --muted: #eceded;
+  --muted-foreground: #6b7280;
+
+  --border: #e4e5e2;
+
+  --primary: #0f7d78;          /* calm teal */
+  --primary-foreground: #ffffff;
+
+  --accent: #3a5a9b;           /* muted indigo */
+  --accent-foreground: #ffffff;
+
+  --success: #2f8f4e;
+  --success-soft: #e6f4ea;
+  --warning: #b7791f;
+  --warning-soft: #fbf1dc;
+  --danger: #c0453f;
+  --danger-soft: #f8e7e6;
+
+  --ring: #0f7d78;
+  --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14171d;
+    --foreground: #e7e9ee;
+
+    --surface: #1c2029;
+    --surface-2: #232833;
+
+    --muted: #232833;
+    --muted-foreground: #9aa2b1;
+
+    --border: #2b313c;
+
+    --primary: #2bb3ab;
+    --primary-foreground: #06201f;
+
+    --accent: #7ea0e0;
+    --accent-foreground: #0a1220;
+
+    --success: #4caf6d;
+    --success-soft: #16281d;
+    --warning: #d6a24e;
+    --warning-soft: #2a2415;
+    --danger: #e0736d;
+    --danger-soft: #2a1817;
+
+    --ring: #2bb3ab;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ring: var(--ring);
+  --radius-app: var(--radius);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Noto Sans HK",
+    "PingFang HK", "Microsoft JhengHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
