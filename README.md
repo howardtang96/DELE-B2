@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spanish B2 Performance App
 
-## Getting Started
+A private, mobile-first PWA for **one** learner: a Cantonese speaker in Hong Kong
+preparing for the **non-oral DELE B2 components** — reading, listening, and written
+expression — in a 15-minute daily budget.
 
-First, run the development server:
+Oral performance is already strong. This app deliberately targets the weaker areas:
+**grammar accuracy, reading-exam strategy, listening-exam strategy, and formal /
+structured written argumentation.**
+
+> This app does **not** promise or predict an exam pass. It tracks an internal,
+> evidence-based **readiness** signal from timed tasks, skill coverage,
+> recurring-error transfer, and mock results.
+
+---
+
+## Status
+
+- **Phase 0 (current): navigable PWA prototype.** Mock data + local state only.
+  No backend, no database, no auth, no LLM.
+- Phase 1: Supabase (Postgres / Auth / Storage).
+- Phase 2: controlled LLM API calls with structured JSON output.
+
+## Stack
+
+Next.js (App Router) · TypeScript · Tailwind CSS v4 · shadcn-style UI · Lucide icons · Zustand · PWA.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run lint     # ESLint
+npm run typecheck # tsc --noEmit
+npm run build    # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Screens (Phase 0)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | Screen | Purpose |
+|---|---|---|
+| `/` | Today Mission | One next-best task + reviews due |
+| `/quick` | Quick 2 MC | Fast retrieval, 2 items |
+| `/reading` | Reading Challenge | DELE B2-style reading + strategy |
+| `/writing` | Writing Focus Editor | Formal writing, word band, ≤3 feedback points |
+| `/receipt` | Learning Receipt | 6-block session summary |
+| `/progress` | Weekly Progress | Coverage, mastery, readiness |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Core principle: code owns the syllabus, the LLM only personalises
 
-## Learn More
+- **Code owns**: scheduling (1/3/7/14/30-day review), scoring rules, word counts,
+  task coverage, the learning ladder (recognition → controlled production → free
+  writing → timed B2 task), and the mastery threshold (correct in **3 different
+  contexts**).
+- **LLM (Phase 2) owns only**: personalised explanations, feedback wording,
+  corrections, and task *variants* — always through typed, validated JSON slots.
+  It never invents the syllabus and never marks mastery.
 
-To learn more about Next.js, take a look at the following resources:
+See [`docs/`](./docs) for the full specification.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Product Brief](./docs/product-brief.md)
+- [Information Architecture](./docs/information-architecture.md)
+- [UX Principles](./docs/ux-principles.md)
+- [Learning Engine Spec](./docs/learning-engine-spec.md)
+- [Data Model](./docs/data-model.md)
+- [Roadmap](./docs/roadmap.md)
