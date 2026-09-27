@@ -76,6 +76,7 @@ export default function QuickPage() {
       <McQuestion
         key={item.id}
         prompt={prompt}
+        itemId={item.id}
         onAnswered={handleAnswered}
         onNext={handleNext}
         nextLabel={isLast ? "See your receipt" : "Next"}

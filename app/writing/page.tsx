@@ -8,15 +8,17 @@ import { ModeHeader } from "@/components/shell/ModeHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WRITING_ITEMS, WRITING_SEED_FEEDBACK } from "@/data/seed-writing";
-import type { Session, WritingPrompt } from "@/lib/types";
+import type { FeedbackPoint, Session, WritingPrompt } from "@/lib/types";
 import {
+  capFeedback,
   checkWritingObjectives,
   countWords,
   wordBandStatus,
 } from "@/lib/scoring";
-import { writingFeedback } from "@/lib/llm/contract";
+import { fetchWritingFeedback } from "@/lib/llm/client";
 import { useTrainerStore, newSessionId } from "@/lib/store";
 import { buildReceipt, type OutcomeLine } from "@/lib/receipt";
 
@@ -40,15 +42,15 @@ export default function WritingPage() {
   const [submitted, setSubmitted] = React.useState(false);
   const startedAt = React.useRef(new Date().toISOString());
 
+  // Feedback state: seed shows instantly; personalised LLM output swaps in if the
+  // server has an API key configured. Always capped at 3 points.
+  const [points, setPoints] = React.useState<FeedbackPoint[]>([]);
+  const [source, setSource] = React.useState<"seed" | "llm">("seed");
+  const [feedbackLoading, setFeedbackLoading] = React.useState(false);
+
   const words = countWords(text);
   const band = wordBandStatus(words, PROMPT);
   const check = checkWritingObjectives(text, PROMPT);
-
-  // ≤3 feedback points — capped in code (seed now, LLM in Phase 2).
-  const feedback = React.useMemo(
-    () => writingFeedback(text, PROMPT, WRITING_SEED_FEEDBACK[ITEM.id] ?? []),
-    [text],
-  );
 
   function submit() {
     setSubmitted(true);
@@ -59,6 +61,19 @@ export default function WritingPage() {
       errorTags: check.meetsObjectives ? [] : ITEM.tags,
       context: CONTEXT,
     });
+
+    // Instant seed feedback, then try to personalise.
+    setPoints(capFeedback(WRITING_SEED_FEEDBACK[ITEM.id] ?? []));
+    setSource("seed");
+    setFeedbackLoading(true);
+    fetchWritingFeedback(ITEM.id, text)
+      .then((res) => {
+        if (res && res.points.length > 0) {
+          setPoints(capFeedback(res.points));
+          setSource(res.source);
+        }
+      })
+      .finally(() => setFeedbackLoading(false));
   }
 
   function finish() {
@@ -157,11 +172,20 @@ export default function WritingPage() {
       ) : (
         <>
           <div className="mt-6">
-            <p className="mb-3 text-sm font-semibold">
-              3 個重點 (最多三個) · Focus points
-            </p>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold">
+                重點 (最多三個) · Focus points
+              </p>
+              {source === "llm" ? (
+                <Badge variant="primary">
+                  <Sparkles className="h-3.5 w-3.5" /> AI 個人化
+                </Badge>
+              ) : feedbackLoading ? (
+                <span className="text-xs text-muted-foreground">個人化中…</span>
+              ) : null}
+            </div>
             <div className="space-y-3">
-              {feedback.points.map((p, i) => (
+              {points.map((p, i) => (
                 <div
                   key={i}
                   className="rounded-[var(--radius-app)] border border-border bg-surface p-4"

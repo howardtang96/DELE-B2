@@ -13,21 +13,25 @@
 - Exit criteria: see acceptance criteria in the Phase 0 section below; lint +
   typecheck clean; installable PWA.
 
-## Phase 1 — Supabase (Postgres / Auth / Storage)
-- Move seed content into `skills` / `items` tables (read-only for the app).
-- Persist `attempts`, `review_state`, `sessions`, `receipts` with Row-Level
-  Security scoped to the single user.
-- Auth (single user) + Storage bucket for listening audio.
-- Keep all engine logic in code; DB stores state, not rules.
-- Add real timed **Listening** mode using stored audio.
+## Phase 1 — Supabase (Postgres / Auth / Storage) ✅ code delivered
+- ✅ `skills` / `items` tables (read-only) + `attempts` / `review_state` /
+  `sessions` / `receipts` with RLS scoped to the user. See
+  [phase1-supabase.md](./phase1-supabase.md).
+- ✅ Magic-link auth (`/account`) + private `listening-audio` storage bucket.
+- ✅ Offline-first sync layer (`lib/repo`), engine logic unchanged.
+- ✅ Graceful fallback: no env → local-only PWA.
+- ⏳ Remaining: real timed **Listening** mode UI using stored audio; regenerate DB
+  types via Supabase CLI once the project exists.
 
-## Phase 2 — Controlled LLM (structured JSON)
-- Introduce `lib/llm/` clients with **strict output schemas** and validation.
-- Roles: `explain`, `correct`, `feedback` (≤3), `variant`. Fallback to seed on any
-  invalid output.
-- Personalise under the engine's learning requirements (相應學習要求); the LLM never
+## Phase 2 — Controlled LLM (structured JSON) ✅ code delivered
+- ✅ `lib/llm/` with zod output schemas + validation, forced Anthropic tool use.
+- ✅ Roles live: `explain`, `feedback` (≤3). Fallback to seed on any invalid output.
+  See [phase2-llm.md](./phase2-llm.md).
+- ✅ Personalises under the engine's learning requirements (相應學習要求); never
   chooses syllabus, scores, sets mastery, or schedules.
-- Cost/latency guardrails; cache generated variants against curriculum items.
+- ✅ Server-only key, small `max_tokens`, calls only on user actions.
+- ⏳ Remaining: `correct` + `variant` roles; cache generated variants against items;
+  derive recurring-error tags from real attempt history.
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).

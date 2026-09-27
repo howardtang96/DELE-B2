@@ -1,24 +1,30 @@
 "use client";
 
 import * as React from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { McPrompt } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { fetchExplain } from "@/lib/llm/client";
 
 /** One MC item: tap an option → instant correctness + concise why. */
 export function McQuestion({
   prompt,
+  itemId,
   onAnswered,
   onNext,
   nextLabel = "Next",
 }: {
   prompt: McPrompt;
+  /** When set, an LLM-personalised explanation is fetched (falls back to seed). */
+  itemId?: string;
   onAnswered: (chosenIndex: number, correct: boolean) => void;
   onNext: () => void;
   nextLabel?: string;
 }) {
   const [chosen, setChosen] = React.useState<number | null>(null);
+  const [whyZh, setWhyZh] = React.useState(prompt.whyZh);
+  const [whySource, setWhySource] = React.useState<"seed" | "llm">("seed");
   const answered = chosen !== null;
   const correct = answered && chosen === prompt.correctIndex;
 
@@ -26,6 +32,14 @@ export function McQuestion({
     if (answered) return;
     setChosen(i);
     onAnswered(i, i === prompt.correctIndex);
+    if (itemId) {
+      fetchExplain(itemId, i).then((res) => {
+        if (res && res.source === "llm" && res.whyZh) {
+          setWhyZh(res.whyZh);
+          setWhySource("llm");
+        }
+      });
+    }
   }
 
   return (
@@ -66,8 +80,15 @@ export function McQuestion({
             correct ? "bg-success-soft text-success" : "bg-warning-soft text-warning",
           )}
         >
-          <p className="mb-1 font-semibold">{correct ? "✓ Correcto" : "✗ Casi"}</p>
-          <p>{prompt.whyZh}</p>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="font-semibold">{correct ? "✓ Correcto" : "✗ Casi"}</p>
+            {whySource === "llm" ? (
+              <span className="inline-flex items-center gap-1 text-xs opacity-80">
+                <Sparkles className="h-3 w-3" /> AI 個人化
+              </span>
+            ) : null}
+          </div>
+          <p>{whyZh}</p>
         </div>
       ) : null}
 
