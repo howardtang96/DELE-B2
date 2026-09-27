@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen } from "lucide-react";
+import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,9 +28,18 @@ export default function TodayMissionPage() {
             <p className="text-sm text-muted-foreground">早晨 · 準備好未</p>
             <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s Mission</h1>
           </div>
-          <Badge variant="warning">
-            <Flame className="h-3.5 w-3.5" /> {streak} 日
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="warning">
+              <Flame className="h-3.5 w-3.5" /> {streak} 日
+            </Badge>
+            <Link
+              href="/account"
+              aria-label="Account"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <UserCircle2 className="h-5 w-5" />
+            </Link>
+          </div>
         </header>
 
         <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">

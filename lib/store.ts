@@ -1,7 +1,8 @@
 "use client";
 
-// Local state for Phase 0 (no backend). Zustand + localStorage persistence.
-// Records attempts, review scheduling, sessions, and the latest receipt.
+// Client state + persistence. localStorage is always the offline cache; when
+// Supabase is configured and a user is signed in, writes also sync to the server
+// and initial state is hydrated from it. See lib/repo and docs/phase1-supabase.md.
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -14,6 +15,7 @@ import type {
 } from "./types";
 import { evaluateMastery } from "./mastery";
 import { initReviewState, scheduleNext } from "./scheduler";
+import { getRepo } from "./repo";
 
 let idCounter = 0;
 function newId(prefix: string) {
@@ -21,8 +23,18 @@ function newId(prefix: string) {
   return `${prefix}-${Date.now()}-${idCounter}`;
 }
 
+/** Fire-and-forget server write; failures never block the UI (offline-first). */
+function syncSave(fn: (repo: NonNullable<Awaited<ReturnType<typeof getRepo>>>) => Promise<void>) {
+  getRepo()
+    .then((repo) => (repo ? fn(repo) : undefined))
+    .catch(() => {
+      /* stays cached in localStorage; will not be lost */
+    });
+}
+
 interface TrainerState {
   hydrated: boolean;
+  serverSynced: boolean;
   attempts: Attempt[];
   reviewStates: Record<string, ReviewState>;
   sessions: Session[];
@@ -40,12 +52,15 @@ interface TrainerState {
   completeSession: (session: Session, receipt: Receipt) => void;
   reset: () => void;
   attemptsFor: (itemId: string) => Attempt[];
+  /** Pull server state into the store (no-op without Supabase + a session). */
+  hydrateFromServer: () => Promise<void>;
 }
 
 export const useTrainerStore = create<TrainerState>()(
   persist(
     (set, get) => ({
       hydrated: false,
+      serverSynced: false,
       attempts: [],
       reviewStates: {},
       sessions: [],
@@ -54,55 +69,70 @@ export const useTrainerStore = create<TrainerState>()(
       attemptsFor: (itemId) =>
         get().attempts.filter((a) => a.itemId === itemId),
 
-      recordAttempt: ({ itemId, stage, correct, errorTags = [], latencyMs, context }) =>
-        set((state) => {
-          const attempt: Attempt = {
-            id: newId("att"),
-            itemId,
-            stage,
-            correct,
-            errorTags,
-            latencyMs,
-            context,
-            createdAt: new Date().toISOString(),
-          };
-          const attempts = [...state.attempts, attempt];
+      recordAttempt: ({ itemId, stage, correct, errorTags = [], latencyMs, context }) => {
+        const state = get();
+        const attempt: Attempt = {
+          id: newId("att"),
+          itemId,
+          stage,
+          correct,
+          errorTags,
+          latencyMs,
+          context,
+          createdAt: new Date().toISOString(),
+        };
+        const attempts = [...state.attempts, attempt];
 
-          const prev =
-            state.reviewStates[itemId] ?? initReviewState(itemId);
-          const scheduled = scheduleNext(prev, correct);
-          const mastery = evaluateMastery(
-            attempts.filter((a) => a.itemId === itemId),
-          );
+        const prev = state.reviewStates[itemId] ?? initReviewState(itemId);
+        const scheduled = scheduleNext(prev, correct);
+        const mastery = evaluateMastery(attempts.filter((a) => a.itemId === itemId));
+        const reviewState: ReviewState = {
+          ...scheduled,
+          masteryCount: mastery.count,
+          mastered: mastery.mastered,
+        };
 
-          const reviewStates: Record<string, ReviewState> = {
-            ...state.reviewStates,
-            [itemId]: {
-              ...scheduled,
-              masteryCount: mastery.count,
-              mastered: mastery.mastered,
-            },
-          };
+        set({
+          attempts,
+          reviewStates: { ...state.reviewStates, [itemId]: reviewState },
+        });
+        syncSave((repo) => repo.saveAttempt(attempt, reviewState));
+      },
 
-          return { attempts, reviewStates };
-        }),
-
-      completeSession: (session, receipt) =>
+      completeSession: (session, receipt) => {
         set((state) => ({
           sessions: [...state.sessions, session],
           lastReceipt: receipt,
-        })),
+        }));
+        syncSave((repo) => repo.saveSession(session, receipt));
+      },
 
-      reset: () =>
+      reset: () => {
+        set({ attempts: [], reviewStates: {}, sessions: [], lastReceipt: null });
+        syncSave((repo) => repo.reset());
+      },
+
+      hydrateFromServer: async () => {
+        const repo = await getRepo();
+        if (!repo) return;
+        const remote = await repo.load();
         set({
-          attempts: [],
-          reviewStates: {},
-          sessions: [],
-          lastReceipt: null,
-        }),
+          attempts: remote.attempts,
+          reviewStates: remote.reviewStates,
+          sessions: remote.sessions,
+          lastReceipt: remote.lastReceipt,
+          serverSynced: true,
+        });
+      },
     }),
     {
       name: "spanish-b2-trainer",
+      partialize: (s) => ({
+        attempts: s.attempts,
+        reviewStates: s.reviewStates,
+        sessions: s.sessions,
+        lastReceipt: s.lastReceipt,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) state.hydrated = true;
       },
