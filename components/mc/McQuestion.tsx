@@ -11,6 +11,7 @@ import { fetchExplain } from "@/lib/llm/client";
 export function McQuestion({
   prompt,
   itemId,
+  errorTags = [],
   onAnswered,
   onNext,
   nextLabel = "Next",
@@ -18,6 +19,8 @@ export function McQuestion({
   prompt: McPrompt;
   /** When set, an LLM-personalised explanation is fetched (falls back to seed). */
   itemId?: string;
+  /** Learner's recurring error tags, so the explanation can target them. */
+  errorTags?: string[];
   onAnswered: (chosenIndex: number, correct: boolean) => void;
   onNext: () => void;
   nextLabel?: string;
@@ -33,7 +36,7 @@ export function McQuestion({
     setChosen(i);
     onAnswered(i, i === prompt.correctIndex);
     if (itemId) {
-      fetchExplain(itemId, i).then((res) => {
+      fetchExplain(itemId, i, errorTags).then((res) => {
         if (res && res.source === "llm" && res.whyZh) {
           setWhyZh(res.whyZh);
           setWhySource("llm");

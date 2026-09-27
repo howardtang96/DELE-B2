@@ -9,6 +9,7 @@ import { explainResultSchema, explainToolSchema } from "@/lib/llm/schemas";
 const bodySchema = z.object({
   itemId: z.string().min(1),
   chosenIndex: z.number().int().min(0).max(10),
+  errorTags: z.array(z.string().max(40)).max(10).optional(),
 });
 
 export async function POST(req: Request) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const { itemId, chosenIndex } = parsed.data;
+  const { itemId, chosenIndex, errorTags = [] } = parsed.data;
   const item = ITEM_BY_ID[itemId];
   if (!item || item.type !== "mc") {
     return NextResponse.json({ error: "unknown mc item" }, { status: 404 });
@@ -27,7 +28,9 @@ export async function POST(req: Request) {
   const prompt = item.prompt as McPrompt;
   const seed = prompt.whyZh;
 
-  const { system, user } = buildExplainPrompt(prompt, chosenIndex, item.tags);
+  // Focus tags = the item's own tags plus the learner's recurring errors.
+  const focusTags = Array.from(new Set([...item.tags, ...errorTags]));
+  const { system, user } = buildExplainPrompt(prompt, chosenIndex, focusTags);
   const result = await callStructured({
     system,
     user,

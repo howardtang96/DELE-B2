@@ -19,12 +19,13 @@ export interface ExplainResponse {
 export async function fetchWritingFeedback(
   itemId: string,
   text: string,
+  errorTags: string[] = [],
 ): Promise<FeedbackResponse | null> {
   try {
     const res = await fetch("/api/llm/feedback", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ itemId, text }),
+      body: JSON.stringify({ itemId, text, errorTags }),
     });
     if (!res.ok) return null;
     return (await res.json()) as FeedbackResponse;
@@ -36,12 +37,13 @@ export async function fetchWritingFeedback(
 export async function fetchExplain(
   itemId: string,
   chosenIndex: number,
+  errorTags: string[] = [],
 ): Promise<ExplainResponse | null> {
   try {
     const res = await fetch("/api/llm/explain", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ itemId, chosenIndex }),
+      body: JSON.stringify({ itemId, chosenIndex, errorTags }),
     });
     if (!res.ok) return null;
     return (await res.json()) as ExplainResponse;

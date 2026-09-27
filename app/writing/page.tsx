@@ -19,6 +19,7 @@ import {
   wordBandStatus,
 } from "@/lib/scoring";
 import { fetchWritingFeedback } from "@/lib/llm/client";
+import { topErrorTags } from "@/lib/errors";
 import { useTrainerStore, newSessionId } from "@/lib/store";
 import { buildReceipt, type OutcomeLine } from "@/lib/receipt";
 
@@ -66,7 +67,8 @@ export default function WritingPage() {
     setPoints(capFeedback(WRITING_SEED_FEEDBACK[ITEM.id] ?? []));
     setSource("seed");
     setFeedbackLoading(true);
-    fetchWritingFeedback(ITEM.id, text)
+    const learnerTags = topErrorTags(useTrainerStore.getState().attempts);
+    fetchWritingFeedback(ITEM.id, text, learnerTags)
       .then((res) => {
         if (res && res.points.length > 0) {
           setPoints(capFeedback(res.points));

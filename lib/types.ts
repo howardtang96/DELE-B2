@@ -62,7 +62,24 @@ export interface WritingPrompt {
   requiredElements: { key: string; labelZh: string }[]; // e.g. greeting/closing
 }
 
-export type ItemPrompt = McPrompt | ReadingPrompt | WritingPrompt;
+export interface ListeningPrompt {
+  titleEs: string;
+  instructionZh: string;
+  /** Spoken via browser TTS when no audioUrl is set (real audio arrives in Phase 1+). */
+  scriptEs: string;
+  audioUrl?: string;
+  maxPlays: number;
+  glosses: { phrase: string; zh: string }[];
+  questions: ReadingQuestion[];
+  strategyZh: string;
+  timeLimitSec: number;
+}
+
+export type ItemPrompt =
+  | McPrompt
+  | ReadingPrompt
+  | WritingPrompt
+  | ListeningPrompt;
 
 export interface Item {
   id: string;

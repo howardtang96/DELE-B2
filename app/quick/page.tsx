@@ -8,6 +8,7 @@ import { McQuestion } from "@/components/mc/McQuestion";
 import { MC_ITEMS } from "@/data/seed-mc";
 import type { McPrompt, Session } from "@/lib/types";
 import { useTrainerStore, newSessionId } from "@/lib/store";
+import { topErrorTags } from "@/lib/errors";
 import { buildReceipt, mcAnswerText, type OutcomeLine } from "@/lib/receipt";
 
 const QUICK_ITEMS = MC_ITEMS.slice(0, 2); // "Quick 2"
@@ -17,6 +18,8 @@ export default function QuickPage() {
   const router = useRouter();
   const recordAttempt = useTrainerStore((s) => s.recordAttempt);
   const completeSession = useTrainerStore((s) => s.completeSession);
+  const attempts = useTrainerStore((s) => s.attempts);
+  const errorTags = React.useMemo(() => topErrorTags(attempts), [attempts]);
 
   const [index, setIndex] = React.useState(0);
   const outcomes = React.useRef<OutcomeLine[]>([]);
@@ -77,6 +80,7 @@ export default function QuickPage() {
         key={item.id}
         prompt={prompt}
         itemId={item.id}
+        errorTags={errorTags}
         onAnswered={handleAnswered}
         onNext={handleNext}
         nextLabel={isLast ? "See your receipt" : "Next"}

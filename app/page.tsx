@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, UserCircle2 } from "lucide-react";
+import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,6 +106,17 @@ export default function TodayMissionPage() {
                 <PenLine className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">Writing Focus</span>
                 <span className="text-xs text-muted-foreground">正式寫作 · 字數帶</span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/listening" className="col-span-2">
+            <Card className="h-full transition-colors hover:bg-surface-2">
+              <CardContent className="flex items-center gap-3 py-4">
+                <Headphones className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="block text-sm font-medium">Listening</span>
+                  <span className="text-xs text-muted-foreground">限時聆聽 · 只聽兩次</span>
+                </div>
               </CardContent>
             </Card>
           </Link>

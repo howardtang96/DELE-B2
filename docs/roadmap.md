@@ -20,8 +20,11 @@
 - ✅ Magic-link auth (`/account`) + private `listening-audio` storage bucket.
 - ✅ Offline-first sync layer (`lib/repo`), engine logic unchanged.
 - ✅ Graceful fallback: no env → local-only PWA.
-- ⏳ Remaining: real timed **Listening** mode UI using stored audio; regenerate DB
-  types via Supabase CLI once the project exists.
+- ✅ Timed **Listening** mode (`/listening`): exam-style limited replays, TTS audio
+  now (swaps to stored audio via `audioUrl` when Phase 1 audio lands), hidden
+  transcript revealed after answering.
+- ⏳ Remaining: upload real audio to the `listening-audio` bucket and set `audioUrl`;
+  regenerate DB types via Supabase CLI once the project exists.
 
 ## Phase 2 — Controlled LLM (structured JSON) ✅ code delivered
 - ✅ `lib/llm/` with zod output schemas + validation, forced Anthropic tool use.
@@ -30,8 +33,9 @@
 - ✅ Personalises under the engine's learning requirements (相應學習要求); never
   chooses syllabus, scores, sets mastery, or schedules.
 - ✅ Server-only key, small `max_tokens`, calls only on user actions.
-- ⏳ Remaining: `correct` + `variant` roles; cache generated variants against items;
-  derive recurring-error tags from real attempt history.
+- ✅ Recurring-error tags derived from real attempt history (`lib/errors.ts`) and fed
+  to both LLM routes so feedback/explanations target the learner's actual mistakes.
+- ⏳ Remaining: `correct` + `variant` roles; cache generated variants against items.
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).

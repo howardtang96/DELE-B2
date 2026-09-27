@@ -11,6 +11,7 @@ import { feedbackResultSchema, feedbackToolSchema } from "@/lib/llm/schemas";
 const bodySchema = z.object({
   itemId: z.string().min(1),
   text: z.string().max(5000),
+  errorTags: z.array(z.string().max(40)).max(10).optional(),
 });
 
 export async function POST(req: Request) {
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const { itemId, text } = parsed.data;
+  const { itemId, text, errorTags = [] } = parsed.data;
   const item = ITEM_BY_ID[itemId];
   if (!item || item.type !== "writing") {
     return NextResponse.json({ error: "unknown writing item" }, { status: 404 });
@@ -31,7 +32,8 @@ export async function POST(req: Request) {
   const seed = capFeedback(WRITING_SEED_FEEDBACK[itemId] ?? []);
 
   // Personalise via the LLM; null on any failure → seed. Cap enforced regardless.
-  const { system, user } = buildFeedbackPrompt(prompt, text, check, item.tags);
+  const focusTags = Array.from(new Set([...item.tags, ...errorTags]));
+  const { system, user } = buildFeedbackPrompt(prompt, text, check, focusTags);
   const result = await callStructured({
     system,
     user,

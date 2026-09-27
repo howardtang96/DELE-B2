@@ -1,7 +1,16 @@
 // Minimal service worker for installability + basic offline shell.
 // Phase 0: network-first for navigations, cache fallback. Kept intentionally simple.
 const CACHE = "b2-trainer-v1";
-const APP_SHELL = ["/", "/quick", "/reading", "/writing", "/receipt", "/progress"];
+const APP_SHELL = [
+  "/",
+  "/quick",
+  "/reading",
+  "/listening",
+  "/writing",
+  "/receipt",
+  "/progress",
+  "/account",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
