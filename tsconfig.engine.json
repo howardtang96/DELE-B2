@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "incremental": false,
+    "rootDir": "lib",
+    "outDir": ".engine-build",
+    "types": ["node"],
+    "plugins": []
+  },
+  "include": [
+    "lib/types.ts",
+    "lib/scheduler.ts",
+    "lib/mastery.ts",
+    "lib/scoring.ts",
+    "lib/progression.ts",
+    "lib/engine.check.ts"
+  ]
+}

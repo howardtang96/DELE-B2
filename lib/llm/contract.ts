@@ -24,7 +24,7 @@ export interface LearnerContext {
 /** Role: explain WHY an answer was wrong (concise Cantonese). */
 export function explainWrong(
   item: Item,
-  chosenIndex: number,
+  _chosenIndex: number,
   _ctx: LearnerContext,
 ): string {
   // Phase 0: return the seed explanation carried on the item.
