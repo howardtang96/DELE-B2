@@ -16,6 +16,12 @@ export interface ExplainResponse {
   whyZh: string;
 }
 
+export interface CorrectResponse {
+  source: "seed" | "llm";
+  correctedEs: string;
+  summaryZh: string;
+}
+
 export async function fetchWritingFeedback(
   itemId: string,
   text: string,
@@ -29,6 +35,24 @@ export async function fetchWritingFeedback(
     });
     if (!res.ok) return null;
     return (await res.json()) as FeedbackResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchCorrection(
+  itemId: string,
+  text: string,
+  errorTags: string[] = [],
+): Promise<CorrectResponse | null> {
+  try {
+    const res = await fetch("/api/llm/correct", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ itemId, text, errorTags }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as CorrectResponse;
   } catch {
     return null;
   }

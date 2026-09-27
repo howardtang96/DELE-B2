@@ -31,6 +31,27 @@ learner was wrong, why their choice fails. Tie it to the grammar point. Field: w
   return { system: ROLE_SYSTEM, user };
 }
 
+export function buildCorrectPrompt(
+  prompt: WritingPrompt,
+  text: string,
+  recurringErrorTags: string[],
+) {
+  const user = `Task (${prompt.taskEn}): ${prompt.scenarioEs}
+Required word band: ${prompt.minWords}-${prompt.maxWords}.
+Learner's recurring error tags: ${recurringErrorTags.join(", ") || "none"}
+
+Learner's text:
+"""
+${text}
+"""
+
+Return a corrected version (field correctedEs) that keeps the learner's own ideas and
+structure but fixes grammar, register, and connectors to clean B2 level. Do NOT expand
+into a different essay; minimal faithful correction only, within the word band.
+Also give summaryZh: 1-2 sentences of Cantonese naming the main types of change.`;
+  return { system: ROLE_SYSTEM, user };
+}
+
 export function buildFeedbackPrompt(
   prompt: WritingPrompt,
   text: string,

@@ -37,8 +37,10 @@ UI (client)                    server route                    Anthropic
 - `lib/llm/prompts.ts` — controlled prompt builders (role, JSON-only, Cantonese).
 - `lib/llm/provider.ts` — server-only Anthropic call with forced tool; returns
   validated JSON or null.
-- `app/api/llm/explain/route.ts`, `app/api/llm/feedback/route.ts` — validate input,
-  look up the item from code data, call the model, cap, or fall back to seed.
+- `app/api/llm/explain/route.ts`, `app/api/llm/feedback/route.ts`,
+  `app/api/llm/correct/route.ts` — validate input, look up the item from code data,
+  call the model, cap, or fall back to seed. `correct` returns a minimal faithful
+  rewrite of the learner's text + a Cantonese change summary, fetched on demand.
 - `lib/llm/client.ts` — client fetch helpers (used by the MC and Writing screens).
 
 ## Setup

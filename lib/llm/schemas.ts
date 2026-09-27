@@ -21,8 +21,16 @@ export const explainResultSchema = z.object({
   whyZh: z.string().min(1).max(400),
 });
 
+export const correctResultSchema = z.object({
+  // A minimally-rewritten, corrected B2-level version of the learner's text.
+  correctedEs: z.string().min(1).max(2000),
+  // 1-2 sentence Cantonese summary of the main changes.
+  summaryZh: z.string().min(1).max(400),
+});
+
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
+export type CorrectResult = z.infer<typeof correctResultSchema>;
 
 // JSON Schemas passed to the model as tool input_schema (kept aligned with the zod
 // schemas above).
@@ -55,5 +63,15 @@ export const explainToolSchema = {
     whyZh: { type: "string" },
   },
   required: ["whyZh"],
+  additionalProperties: false,
+} as const;
+
+export const correctToolSchema = {
+  type: "object",
+  properties: {
+    correctedEs: { type: "string" },
+    summaryZh: { type: "string" },
+  },
+  required: ["correctedEs", "summaryZh"],
   additionalProperties: false,
 } as const;

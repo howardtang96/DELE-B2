@@ -8,7 +8,7 @@ import { ModeHeader } from "@/components/shell/ModeHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WRITING_ITEMS, WRITING_SEED_FEEDBACK } from "@/data/seed-writing";
 import type { FeedbackPoint, Session, WritingPrompt } from "@/lib/types";
@@ -18,7 +18,7 @@ import {
   countWords,
   wordBandStatus,
 } from "@/lib/scoring";
-import { fetchWritingFeedback } from "@/lib/llm/client";
+import { fetchWritingFeedback, fetchCorrection } from "@/lib/llm/client";
 import { topErrorTags } from "@/lib/errors";
 import { useTrainerStore, newSessionId } from "@/lib/store";
 import { buildReceipt, type OutcomeLine } from "@/lib/receipt";
@@ -49,6 +49,14 @@ export default function WritingPage() {
   const [source, setSource] = React.useState<"seed" | "llm">("seed");
   const [feedbackLoading, setFeedbackLoading] = React.useState(false);
 
+  // Correct mode: a full corrected version, fetched on demand.
+  const [corrected, setCorrected] = React.useState<{
+    correctedEs: string;
+    summaryZh: string;
+    source: "seed" | "llm";
+  } | null>(null);
+  const [correcting, setCorrecting] = React.useState(false);
+
   const words = countWords(text);
   const band = wordBandStatus(words, PROMPT);
   const check = checkWritingObjectives(text, PROMPT);
@@ -76,6 +84,23 @@ export default function WritingPage() {
         }
       })
       .finally(() => setFeedbackLoading(false));
+  }
+
+  function runCorrection() {
+    if (correcting) return;
+    setCorrecting(true);
+    const learnerTags = topErrorTags(useTrainerStore.getState().attempts);
+    fetchCorrection(ITEM.id, text, learnerTags)
+      .then((res) => {
+        if (res) {
+          setCorrected({
+            correctedEs: res.correctedEs,
+            summaryZh: res.summaryZh,
+            source: res.source,
+          });
+        }
+      })
+      .finally(() => setCorrecting(false));
   }
 
   function finish() {
@@ -208,6 +233,39 @@ export default function WritingPage() {
               ))}
             </div>
           </div>
+
+          {/* Correct mode — full corrected version, on demand */}
+          <div className="mt-6">
+            {!corrected ? (
+              <Button
+                variant="outline"
+                size="block"
+                onClick={runCorrection}
+                disabled={correcting}
+              >
+                <Wand2 className="h-4 w-4" />
+                {correcting ? "改正緊…" : "生成改正版本 · Correct mode"}
+              </Button>
+            ) : (
+              <div className="rounded-[var(--radius-app)] border border-border bg-surface p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold">改正版本 · Corrected</p>
+                  {corrected.source === "llm" ? (
+                    <Badge variant="primary">
+                      <Sparkles className="h-3.5 w-3.5" /> AI
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {corrected.correctedEs}
+                </p>
+                <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
+                  {corrected.summaryZh}
+                </p>
+              </div>
+            )}
+          </div>
+
           <Button size="block" className="mt-5" onClick={finish}>
             See your receipt
           </Button>

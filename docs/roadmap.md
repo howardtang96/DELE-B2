@@ -34,8 +34,11 @@
   chooses syllabus, scores, sets mastery, or schedules.
 - ✅ Server-only key, small `max_tokens`, calls only on user actions.
 - ✅ Recurring-error tags derived from real attempt history (`lib/errors.ts`) and fed
-  to both LLM routes so feedback/explanations target the learner's actual mistakes.
-- ⏳ Remaining: `correct` + `variant` roles; cache generated variants against items.
+  to the LLM routes so feedback/explanations/corrections target the learner's mistakes.
+- ✅ `correct` role: on-demand corrected version of the learner's writing
+  (`/api/llm/correct`), minimal faithful rewrite + Cantonese change summary.
+- ⏳ Remaining: `variant` role (fresh task instances of an existing item); cache
+  generated variants against items.
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).
