@@ -37,8 +37,10 @@
   to the LLM routes so feedback/explanations/corrections target the learner's mistakes.
 - ✅ `correct` role: on-demand corrected version of the learner's writing
   (`/api/llm/correct`), minimal faithful rewrite + Cantonese change summary.
-- ⏳ Remaining: `variant` role (fresh task instances of an existing item); cache
-  generated variants against items.
+- ✅ `variant` role (`/api/llm/variant`): fresh MC/cloze instances of an existing
+  grammar topic — powers unlimited practice in the Grammar Drill (prefetched, seed
+  fallback). 17 grammar topics ship as templates.
+- ⏳ Remaining: cache generated variants; reading passage generator (next).
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).

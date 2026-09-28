@@ -2,7 +2,7 @@
 // learning requirements: personalise only, never invent syllabus / score / mastery,
 // JSON via tool only, concise Cantonese. Inputs come from code-owned data.
 
-import type { McPrompt, WritingPrompt } from "@/lib/types";
+import type { ClozePrompt, Difficulty, McPrompt, WritingPrompt } from "@/lib/types";
 import type { WritingObjectiveCheck } from "@/lib/scoring";
 import { MAX_WRITING_FEEDBACK_POINTS } from "@/lib/scoring";
 
@@ -49,6 +49,40 @@ Return a corrected version (field correctedEs) that keeps the learner's own idea
 structure but fixes grammar, register, and connectors to clean B2 level. Do NOT expand
 into a different essay; minimal faithful correction only, within the word band.
 Also give summaryZh: 1-2 sentences of Cantonese naming the main types of change.`;
+  return { system: ROLE_SYSTEM, user };
+}
+
+export function buildVariantMcPrompt(
+  skillLabelEn: string,
+  example: McPrompt,
+  difficulty: Difficulty,
+) {
+  const user = `Grammar topic: ${skillLabelEn}. Difficulty: ${difficulty}/3.
+Here is an EXAMPLE item of this topic:
+${JSON.stringify({ stemEs: example.stemEs, options: example.options, correctIndex: example.correctIndex })}
+
+Create ONE NEW multiple-choice item testing the SAME grammar topic at the same level,
+but with a DIFFERENT sentence and vocabulary (a fresh B2 context). Rules:
+- exactly 3 options, exactly one correct;
+- the stem is a natural B2 Spanish sentence with a gap or choice point;
+- whyZh = 1 short Cantonese sentence explaining why the answer is right.`;
+  return { system: ROLE_SYSTEM, user };
+}
+
+export function buildVariantClozePrompt(
+  skillLabelEn: string,
+  example: ClozePrompt,
+  difficulty: Difficulty,
+) {
+  const user = `Grammar topic: ${skillLabelEn}. Difficulty: ${difficulty}/3.
+Here is an EXAMPLE fill-in item of this topic:
+${JSON.stringify({ stemEs: example.stemEs, accepted: example.accepted })}
+
+Create ONE NEW fill-in item testing the SAME grammar topic at the same level, with a
+DIFFERENT sentence. Rules:
+- stemEs MUST contain "___" exactly where the learner types the answer;
+- accepted = all correct forms (include accents; add common variants if any);
+- hintZh = short Cantonese hint; whyZh = short Cantonese explanation.`;
   return { system: ROLE_SYSTEM, user };
 }
 

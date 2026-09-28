@@ -53,6 +53,42 @@ export const SKILLS: Skill[] = [
     labelEn: "Conditional & if-clauses",
     labelZh: "條件句 (si)",
   },
+  {
+    id: "grammar.relative",
+    component: "grammar",
+    labelEn: "Relative clauses",
+    labelZh: "關係從句 (que/quien/cuyo)",
+  },
+  {
+    id: "grammar.passive",
+    component: "grammar",
+    labelEn: "Passive & impersonal se",
+    labelZh: "被動 / se 無人稱",
+  },
+  {
+    id: "grammar.reported",
+    component: "grammar",
+    labelEn: "Reported speech",
+    labelZh: "間接引語",
+  },
+  {
+    id: "grammar.comparatives",
+    component: "grammar",
+    labelEn: "Comparatives & superlatives",
+    labelZh: "比較 / 最高級",
+  },
+  {
+    id: "grammar.imperative",
+    component: "grammar",
+    labelEn: "Imperative",
+    labelZh: "命令式",
+  },
+  {
+    id: "grammar.future",
+    component: "grammar",
+    labelEn: "Future & probability",
+    labelZh: "未來式 / 推測",
+  },
   // Reading strategy
   {
     id: "reading.scan",

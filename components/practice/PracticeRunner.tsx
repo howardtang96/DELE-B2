@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Home } from "lucide-react";
+import { Home, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { ModeHeader } from "@/components/shell/ModeHeader";
 import { McQuestion } from "@/components/mc/McQuestion";
 import { ClozeQuestion } from "@/components/mc/ClozeQuestion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import type {
   ClozePrompt,
   Item,
@@ -19,22 +20,29 @@ import type {
 } from "@/lib/types";
 import { useTrainerStore, newSessionId } from "@/lib/store";
 import { topErrorTags } from "@/lib/errors";
+import { fetchVariant } from "@/lib/llm/client";
 import { buildReceipt, mcAnswerText, type OutcomeLine } from "@/lib/receipt";
 
+type Resolved = { prompt: McPrompt | ClozePrompt; source: "seed" | "llm" };
+
 /**
- * Runs a sequence of MC/cloze items as one session, records attempts (using the
- * session id as the mastery context), then routes to the Learning Receipt.
+ * Runs a sequence of MC/cloze items as one session, records attempts (session id =
+ * mastery context), then routes to the Learning Receipt. With `useVariants`, each
+ * grammar item is swapped for a fresh AI-generated instance of the same topic
+ * (prefetched; falls back to the seed item when the LLM is off or slow).
  */
 export function PracticeRunner({
   items,
   mode,
   title,
   subtitle,
+  useVariants = false,
 }: {
   items: Item[];
   mode: SessionMode;
   title: string;
   subtitle?: string;
+  useVariants?: boolean;
 }) {
   const router = useRouter();
   const recordAttempt = useTrainerStore((s) => s.recordAttempt);
@@ -48,6 +56,28 @@ export function PracticeRunner({
 
   const [index, setIndex] = React.useState(0);
   const outcomes = React.useRef<OutcomeLine[]>([]);
+
+  // Variant resolution (only when useVariants). Prefetch current + next.
+  const [resolved, setResolved] = React.useState<Record<number, Resolved>>({});
+  const inFlight = React.useRef<Set<number>>(new Set());
+
+  React.useEffect(() => {
+    if (useVariants === false || items.length === 0) return;
+    for (const i of [index, index + 1]) {
+      const it = items[i];
+      if (!it || (it.type !== "mc" && it.type !== "cloze")) continue;
+      if (resolved[i] || inFlight.current.has(i)) continue;
+      inFlight.current.add(i);
+      fetchVariant(it.id).then((res) => {
+        setResolved((prev) => ({
+          ...prev,
+          [i]: res
+            ? { prompt: res.prompt, source: res.source }
+            : { prompt: it.prompt as McPrompt | ClozePrompt, source: "seed" },
+        }));
+      });
+    }
+  }, [index, useVariants, items, resolved]);
 
   if (items.length === 0) {
     return (
@@ -71,6 +101,11 @@ export function PracticeRunner({
 
   const item = items[index];
   const isLast = index === items.length - 1;
+  const entry = resolved[index];
+  const waitingVariant = useVariants && !entry;
+  const activePrompt = (entry?.prompt ?? item.prompt) as McPrompt | ClozePrompt;
+  const activeSource = entry?.source ?? "seed";
+  const nextLabel = isLast ? "See your receipt" : "Next";
 
   function record(correct: boolean, yourAnswer: string, correctAnswer: string) {
     recordAttempt({
@@ -103,24 +138,31 @@ export function PracticeRunner({
     router.push("/receipt");
   }
 
-  const nextLabel = isLast ? "See your receipt" : "Next";
-
   return (
     <AppShell>
-      <ModeHeader
-        title={title}
-        subtitle={subtitle}
-        step={index + 1}
-        total={items.length}
-      />
-      {item.type === "mc" ? (
+      <ModeHeader title={title} subtitle={subtitle} step={index + 1} total={items.length} />
+
+      {activeSource === "llm" && !waitingVariant ? (
+        <Badge variant="primary" className="mb-3">
+          <Sparkles className="h-3.5 w-3.5" /> AI 生成新題
+        </Badge>
+      ) : null}
+
+      {waitingVariant ? (
+        <div className="space-y-3" aria-label="Loading question">
+          <div className="h-6 w-3/4 animate-pulse rounded bg-surface-2" />
+          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
+          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
+          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
+        </div>
+      ) : item.type === "mc" ? (
         <McQuestion
           key={item.id}
-          prompt={item.prompt as McPrompt}
-          itemId={item.id}
+          prompt={activePrompt as McPrompt}
+          itemId={useVariants ? undefined : item.id}
           errorTags={errorTags}
           onAnswered={(chosen, correct) => {
-            const p = item.prompt as McPrompt;
+            const p = activePrompt as McPrompt;
             record(correct, mcAnswerText(p, chosen), mcAnswerText(p, p.correctIndex));
           }}
           onNext={next}
@@ -129,9 +171,9 @@ export function PracticeRunner({
       ) : (
         <ClozeQuestion
           key={item.id}
-          prompt={item.prompt as ClozePrompt}
+          prompt={activePrompt as ClozePrompt}
           onAnswered={(correct, answerText) => {
-            const p = item.prompt as ClozePrompt;
+            const p = activePrompt as ClozePrompt;
             record(correct, answerText, p.accepted[0]);
           }}
           onNext={next}

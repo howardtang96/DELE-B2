@@ -28,9 +28,28 @@ export const correctResultSchema = z.object({
   summaryZh: z.string().min(1).max(400),
 });
 
+// Variant: a fresh instance of an existing grammar item (same topic, new sentence).
+export const variantMcSchema = z.object({
+  stemEs: z.string().min(1).max(300),
+  options: z.array(z.string().min(1).max(120)).length(3),
+  correctIndex: z.number().int().min(0).max(2),
+  whyZh: z.string().min(1).max(300),
+});
+
+export const variantClozeSchema = z.object({
+  stemEs: z.string().min(1).max(300).refine((s) => s.includes("___"), {
+    message: "stem must contain ___",
+  }),
+  accepted: z.array(z.string().min(1).max(80)).min(1).max(4),
+  hintZh: z.string().max(200).optional(),
+  whyZh: z.string().min(1).max(300),
+});
+
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
 export type CorrectResult = z.infer<typeof correctResultSchema>;
+export type VariantMc = z.infer<typeof variantMcSchema>;
+export type VariantCloze = z.infer<typeof variantClozeSchema>;
 
 // JSON Schemas passed to the model as tool input_schema (kept aligned with the zod
 // schemas above).
@@ -73,5 +92,29 @@ export const correctToolSchema = {
     summaryZh: { type: "string" },
   },
   required: ["correctedEs", "summaryZh"],
+  additionalProperties: false,
+} as const;
+
+export const variantMcToolSchema = {
+  type: "object",
+  properties: {
+    stemEs: { type: "string" },
+    options: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+    correctIndex: { type: "integer", minimum: 0, maximum: 2 },
+    whyZh: { type: "string" },
+  },
+  required: ["stemEs", "options", "correctIndex", "whyZh"],
+  additionalProperties: false,
+} as const;
+
+export const variantClozeToolSchema = {
+  type: "object",
+  properties: {
+    stemEs: { type: "string", description: "must contain ___ where the answer goes" },
+    accepted: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 4 },
+    hintZh: { type: "string" },
+    whyZh: { type: "string" },
+  },
+  required: ["stemEs", "accepted", "whyZh"],
   additionalProperties: false,
 } as const;

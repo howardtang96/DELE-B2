@@ -26,5 +26,13 @@ export default function GrammarPage() {
   );
 
   if (!mounted) return <PracticeLoading title={TITLE} subtitle={SUBTITLE} />;
-  return <PracticeRunner items={items} mode="quick" title={TITLE} subtitle={SUBTITLE} />;
+  return (
+    <PracticeRunner
+      items={items}
+      mode="quick"
+      title={TITLE}
+      subtitle={SUBTITLE}
+      useVariants
+    />
+  );
 }

@@ -4,7 +4,7 @@
 // back to seed content, so a successful response is always usable. A network failure
 // returns null and the caller keeps its own local seed.
 
-import type { FeedbackPoint } from "@/lib/types";
+import type { ClozePrompt, FeedbackPoint, McPrompt } from "@/lib/types";
 
 export interface FeedbackResponse {
   source: "seed" | "llm";
@@ -35,6 +35,25 @@ export async function fetchWritingFeedback(
     });
     if (!res.ok) return null;
     return (await res.json()) as FeedbackResponse;
+  } catch {
+    return null;
+  }
+}
+
+export type VariantResponse =
+  | { source: "seed" | "llm"; type: "mc"; prompt: McPrompt }
+  | { source: "seed" | "llm"; type: "cloze"; prompt: ClozePrompt };
+
+/** Fetch a fresh AI variant of a grammar item (same topic, new sentence). */
+export async function fetchVariant(itemId: string): Promise<VariantResponse | null> {
+  try {
+    const res = await fetch("/api/llm/variant", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ itemId }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as VariantResponse;
   } catch {
     return null;
   }
