@@ -4,7 +4,7 @@
 // back to seed content, so a successful response is always usable. A network failure
 // returns null and the caller keeps its own local seed.
 
-import type { ClozePrompt, FeedbackPoint, McPrompt } from "@/lib/types";
+import type { ClozePrompt, FeedbackPoint, McPrompt, ReadingPrompt } from "@/lib/types";
 
 export interface FeedbackResponse {
   source: "seed" | "llm";
@@ -54,6 +54,27 @@ export async function fetchVariant(itemId: string): Promise<VariantResponse | nu
     });
     if (!res.ok) return null;
     return (await res.json()) as VariantResponse;
+  } catch {
+    return null;
+  }
+}
+
+export interface ReadingResponse {
+  source: "seed" | "llm";
+  theme: string | null;
+  prompt: ReadingPrompt;
+}
+
+/** Fetch a fresh AI-generated reading passage (theme optional). Seed fallback. */
+export async function fetchReadingPassage(theme?: string): Promise<ReadingResponse | null> {
+  try {
+    const res = await fetch("/api/llm/reading", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(theme ? { theme } : {}),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as ReadingResponse;
   } catch {
     return null;
   }

@@ -40,7 +40,10 @@
 - ✅ `variant` role (`/api/llm/variant`): fresh MC/cloze instances of an existing
   grammar topic — powers unlimited practice in the Grammar Drill (prefetched, seed
   fallback). 17 grammar topics ship as templates.
-- ⏳ Remaining: cache generated variants; reading passage generator (next).
+- ✅ Reading generator (`/api/llm/reading`): original B2 passages on rotating
+  news/knowledge themes (no scraping, no copied text) + glosses + questions; the
+  Reading screen serves a fresh one each visit with seed fallback.
+- ⏳ Remaining: cache generated content; mine reading glosses into spaced-review vocab.
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).

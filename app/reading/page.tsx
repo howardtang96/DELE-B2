@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Timer, Check, X } from "lucide-react";
+import { Timer, Check, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { ModeHeader } from "@/components/shell/ModeHeader";
+import { PracticeLoading } from "@/components/practice/PracticeLoading";
 import { CantoneseNote } from "@/components/common/CantoneseNote";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,14 @@ import { cn } from "@/lib/utils";
 import { READING_ITEMS } from "@/data/seed-reading";
 import type { ReadingPrompt, Session } from "@/lib/types";
 import { useTrainerStore, newSessionId } from "@/lib/store";
+import { useMounted } from "@/lib/use-mounted";
+import { fetchReadingPassage } from "@/lib/llm/client";
 import { buildReceipt, type OutcomeLine } from "@/lib/receipt";
 
-const ITEM = READING_ITEMS[0];
-const PROMPT = ITEM.prompt as ReadingPrompt;
+const ITEM = READING_ITEMS[0]; // tracking/scheduling unit for reading practice
 const CONTEXT = "reading-task";
+const TITLE = "Reading";
+const SUBTITLE = "DELE B2 · 限時閱讀";
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);
@@ -26,21 +30,54 @@ function fmt(sec: number) {
 }
 
 export default function ReadingPage() {
+  const mounted = useMounted();
+  const [data, setData] = React.useState<{
+    prompt: ReadingPrompt;
+    theme: string | null;
+    source: "seed" | "llm";
+  } | null>(null);
+  const started = React.useRef(false);
+
+  React.useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    fetchReadingPassage().then((res) => {
+      setData(
+        res
+          ? { prompt: res.prompt, theme: res.theme, source: res.source }
+          : { prompt: ITEM.prompt as ReadingPrompt, theme: null, source: "seed" },
+      );
+    });
+  }, []);
+
+  if (!mounted || !data) {
+    return <PracticeLoading title={TITLE} subtitle="生成緊今日文章…" />;
+  }
+
+  return (
+    <ReadingTask prompt={data.prompt} theme={data.theme} source={data.source} />
+  );
+}
+
+function ReadingTask({
+  prompt,
+  theme,
+  source,
+}: {
+  prompt: ReadingPrompt;
+  theme: string | null;
+  source: "seed" | "llm";
+}) {
   const router = useRouter();
   const recordAttempt = useTrainerStore((s) => s.recordAttempt);
   const completeSession = useTrainerStore((s) => s.completeSession);
 
   const [answers, setAnswers] = React.useState<(number | null)[]>(
-    PROMPT.questions.map(() => null),
+    prompt.questions.map(() => null),
   );
   const [submitted, setSubmitted] = React.useState(false);
-  const [remaining, setRemaining] = React.useState(PROMPT.timeLimitSec);
+  const [remaining, setRemaining] = React.useState(prompt.timeLimitSec);
   const startedAt = React.useRef(new Date().toISOString());
-  const startMs = React.useRef<number>(0);
-
-  React.useEffect(() => {
-    startMs.current = Date.now();
-  }, []);
 
   React.useEffect(() => {
     if (submitted) return;
@@ -49,8 +86,9 @@ export default function ReadingPage() {
   }, [submitted]);
 
   const allAnswered = answers.every((a) => a !== null);
+  const total = prompt.questions.length;
   const correctCount = answers.filter(
-    (a, i) => a === PROMPT.questions[i].correctIndex,
+    (a, i) => a === prompt.questions[i].correctIndex,
   ).length;
 
   function select(qi: number, oi: number) {
@@ -60,21 +98,18 @@ export default function ReadingPage() {
 
   function submit() {
     setSubmitted(true);
-    const total = PROMPT.questions.length;
     const correct = correctCount === total;
     recordAttempt({
       itemId: ITEM.id,
       stage: ITEM.ladderStage,
       correct,
       errorTags: correct ? [] : ITEM.tags,
-      latencyMs: Date.now() - startMs.current,
       context: CONTEXT,
     });
   }
 
   function finish() {
     const sessionId = newSessionId();
-    const total = PROMPT.questions.length;
     const outcome: OutcomeLine = {
       item: ITEM,
       correct: correctCount === total,
@@ -96,15 +131,17 @@ export default function ReadingPage() {
 
   return (
     <AppShell>
-      <ModeHeader
-        title="Reading"
-        subtitle="DELE B2 · 限時閱讀"
-        step={submitted ? 2 : 1}
-        total={2}
-      />
+      <ModeHeader title={TITLE} subtitle={SUBTITLE} step={submitted ? 2 : 1} total={2} />
 
       <div className="mb-3 flex items-center justify-between">
-        <Badge variant="neutral">Tarea · Scan &amp; locate</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="neutral">Scan &amp; locate</Badge>
+          {source === "llm" && theme ? (
+            <Badge variant="primary">
+              <Sparkles className="h-3.5 w-3.5" /> {theme}
+            </Badge>
+          ) : null}
+        </div>
         <span
           className={cn(
             "inline-flex items-center gap-1 text-sm font-medium tabular-nums",
@@ -118,32 +155,33 @@ export default function ReadingPage() {
 
       <Card className="mb-4">
         <CardContent className="pt-5">
-          <h2 className="mb-2 text-base font-semibold">{PROMPT.titleEs}</h2>
-          <p className="text-sm leading-relaxed">{PROMPT.passageEs}</p>
+          <h2 className="mb-2 text-base font-semibold">{prompt.titleEs}</h2>
+          <p className="text-sm leading-relaxed">{prompt.passageEs}</p>
         </CardContent>
       </Card>
 
       <div className="mb-3">
         <CantoneseNote label="策略提示（廣東話）" defaultOpen={!submitted}>
-          {PROMPT.strategyZh}
+          {prompt.strategyZh}
         </CantoneseNote>
       </div>
 
-      <div className="mb-4">
-        <CantoneseNote label="生字提示 (tap to reveal)">
-          <ul className="space-y-1">
-            {PROMPT.glosses.map((g) => (
-              <li key={g.phrase}>
-                <span className="font-medium text-foreground">{g.phrase}</span> —{" "}
-                {g.zh}
-              </li>
-            ))}
-          </ul>
-        </CantoneseNote>
-      </div>
+      {prompt.glosses.length > 0 ? (
+        <div className="mb-4">
+          <CantoneseNote label="生字提示 (tap to reveal)">
+            <ul className="space-y-1">
+              {prompt.glosses.map((g) => (
+                <li key={g.phrase}>
+                  <span className="font-medium text-foreground">{g.phrase}</span> — {g.zh}
+                </li>
+              ))}
+            </ul>
+          </CantoneseNote>
+        </div>
+      ) : null}
 
       <div className="space-y-4">
-        {PROMPT.questions.map((q, qi) => (
+        {prompt.questions.map((q, qi) => (
           <div key={qi}>
             <p className="mb-2 text-sm font-medium">{q.q}</p>
             <div className="flex flex-col gap-2">
@@ -182,8 +220,7 @@ export default function ReadingPage() {
       ) : (
         <>
           <div className="mt-6 rounded-[var(--radius-app)] bg-surface-2 p-4 text-center text-sm">
-            你答啱 <span className="font-semibold">{correctCount}</span> /{" "}
-            {PROMPT.questions.length}
+            你答啱 <span className="font-semibold">{correctCount}</span> / {total}
           </div>
           <Button size="block" className="mt-4" onClick={finish}>
             See your receipt

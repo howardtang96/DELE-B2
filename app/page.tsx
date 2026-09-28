@@ -105,7 +105,7 @@ export default function TodayMissionPage() {
               <CardContent className="flex flex-col gap-2 py-4">
                 <BookOpen className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">Reading Challenge</span>
-                <span className="text-xs text-muted-foreground">限時閱讀 + 策略</span>
+                <span className="text-xs text-muted-foreground">每日新文章 · 新聞/知識</span>
               </CardContent>
             </Card>
           </Link>

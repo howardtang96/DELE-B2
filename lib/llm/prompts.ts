@@ -86,6 +86,30 @@ DIFFERENT sentence. Rules:
   return { system: ROLE_SYSTEM, user };
 }
 
+export const READING_THEMES = [
+  "tecnología",
+  "medio ambiente",
+  "salud y bienestar",
+  "economía y trabajo",
+  "cultura y sociedad",
+  "educación",
+  "ciencia",
+  "viajes y ciudades",
+] as const;
+
+export function buildReadingPrompt(theme: string) {
+  const user = `Write an ORIGINAL short B2 Spanish reading passage on the theme "${theme}",
+in the style of a general-knowledge / news feature (NOT copied from any real article,
+no real names, quotes or brands). Rules:
+- 90-130 words, clear B2 level, neutral informative tone;
+- 3-4 glosses: pick B2 words/phrases from the passage and give a concise Cantonese meaning;
+- 2-3 comprehension questions (one gist, one detail, optionally one inference), each with
+  exactly 3 options and one correct answer;
+- strategyZh: 1 short Cantonese reading-strategy tip for this passage.
+Return via the tool.`;
+  return { system: ROLE_SYSTEM, user };
+}
+
 export function buildFeedbackPrompt(
   prompt: WritingPrompt,
   text: string,

@@ -45,11 +45,33 @@ export const variantClozeSchema = z.object({
   whyZh: z.string().min(1).max(300),
 });
 
+// Reading: an original B2 passage on a theme, with glosses + comprehension questions.
+export const readingResultSchema = z.object({
+  titleEs: z.string().min(1).max(160),
+  passageEs: z.string().min(1).max(2500),
+  glosses: z
+    .array(z.object({ phrase: z.string().min(1).max(80), zh: z.string().min(1).max(160) }))
+    .max(10)
+    .default([]),
+  questions: z
+    .array(
+      z.object({
+        q: z.string().min(1).max(240),
+        options: z.array(z.string().min(1).max(200)).min(2).max(5),
+        correctIndex: z.number().int().min(0).max(4),
+      }),
+    )
+    .min(1)
+    .max(6),
+  strategyZh: z.string().min(1).max(400),
+});
+
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
 export type CorrectResult = z.infer<typeof correctResultSchema>;
 export type VariantMc = z.infer<typeof variantMcSchema>;
 export type VariantCloze = z.infer<typeof variantClozeSchema>;
+export type ReadingResult = z.infer<typeof readingResultSchema>;
 
 // JSON Schemas passed to the model as tool input_schema (kept aligned with the zod
 // schemas above).
@@ -116,5 +138,41 @@ export const variantClozeToolSchema = {
     whyZh: { type: "string" },
   },
   required: ["stemEs", "accepted", "whyZh"],
+  additionalProperties: false,
+} as const;
+
+export const readingToolSchema = {
+  type: "object",
+  properties: {
+    titleEs: { type: "string" },
+    passageEs: { type: "string" },
+    glosses: {
+      type: "array",
+      maxItems: 6,
+      items: {
+        type: "object",
+        properties: { phrase: { type: "string" }, zh: { type: "string" } },
+        required: ["phrase", "zh"],
+        additionalProperties: false,
+      },
+    },
+    questions: {
+      type: "array",
+      minItems: 2,
+      maxItems: 4,
+      items: {
+        type: "object",
+        properties: {
+          q: { type: "string" },
+          options: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+          correctIndex: { type: "integer", minimum: 0, maximum: 2 },
+        },
+        required: ["q", "options", "correctIndex"],
+        additionalProperties: false,
+      },
+    },
+    strategyZh: { type: "string" },
+  },
+  required: ["titleEs", "passageEs", "glosses", "questions", "strategyZh"],
   additionalProperties: false,
 } as const;
