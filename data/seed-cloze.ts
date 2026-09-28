@@ -1,0 +1,118 @@
+// Controlled-production items (ladder stage 2): the learner TYPES the answer.
+// Scored accent-aware by lib/scoring.scoreControlled. Fixed curriculum content.
+import type { Item } from "@/lib/types";
+
+export const CLOZE_ITEMS: Item[] = [
+  {
+    id: "cz-subj-1",
+    skillId: "grammar.subjunctive",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 2,
+    tags: ["subjunctive", "para-que"],
+    prompt: {
+      stemEs: "Habla más despacio para que todos te ___ (entender).",
+      accepted: ["entiendan"],
+      hintZh: "para que + 虛擬式（第三人稱複數）",
+      whyZh: "para que 觸發虛擬式；ellos/todos → entiendan。",
+    },
+  },
+  {
+    id: "cz-subj-2",
+    skillId: "grammar.subjunctive",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 3,
+    tags: ["subjunctive", "querer-que"],
+    prompt: {
+      stemEs: "Quiero que me ___ (devolver, ustedes) el dinero.",
+      accepted: ["devuelvan"],
+      hintZh: "querer que + 別人做 → 虛擬式；devolver 有 o→ue 變化",
+      whyZh: "querer que 觸發虛擬式，ustedes → devuelvan（o 變 ue）。",
+    },
+  },
+  {
+    id: "cz-serestar-1",
+    skillId: "grammar.ser-estar",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 2,
+    tags: ["ser-estar"],
+    prompt: {
+      stemEs: "Mi hermano ___ (estar) cansado porque ha trabajado mucho.",
+      accepted: ["está"],
+      hintZh: "臨時狀態 → estar，記得重音",
+      whyZh: "cansado 係臨時狀態，用 estar → está（有重音）。",
+    },
+  },
+  {
+    id: "cz-past-1",
+    skillId: "grammar.past-tenses",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 2,
+    tags: ["indefinido"],
+    prompt: {
+      stemEs: "Ayer nosotros ___ (ir) al cine y vimos una película española.",
+      accepted: ["fuimos"],
+      hintZh: "指定咗 ayer 一次過完成 → indefinido",
+      whyZh: "ayer 一次性完成動作用 indefinido；ir → fuimos。",
+    },
+  },
+  {
+    id: "cz-porpara-1",
+    skillId: "grammar.por-para",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 2,
+    tags: ["por-para"],
+    prompt: {
+      stemEs: "Compré este regalo ___ 20 euros en el mercado.",
+      accepted: ["por"],
+      hintZh: "價錢／交換用邊個？",
+      whyZh: "價錢／交換用 por（por 20 euros）。",
+    },
+  },
+  {
+    id: "cz-conn-1",
+    skillId: "grammar.connectors",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 3,
+    tags: ["connectors", "concesion"],
+    prompt: {
+      stemEs: "___ que llovía, salimos a correr. (儘管… → aunque)",
+      accepted: ["aunque"],
+      hintZh: "「儘管／雖然」用邊個連接詞？",
+      whyZh: "表達讓步（雖然）用 aunque。",
+    },
+  },
+  {
+    id: "cz-pron-1",
+    skillId: "grammar.pronouns",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 3,
+    tags: ["pronouns", "se-lo"],
+    prompt: {
+      stemEs: "Reescribe con pronombres — «Di las llaves a Juan» → «Ya ___ di.»",
+      accepted: ["se las"],
+      hintZh: "le + las → ?（兩個字）",
+      whyZh: "間接 le 遇到直接 las 要變 se → se las。",
+    },
+  },
+  {
+    id: "cz-cond-1",
+    skillId: "grammar.conditional",
+    type: "cloze",
+    ladderStage: 2,
+    difficulty: 3,
+    tags: ["conditional", "si-clause"],
+    prompt: {
+      stemEs: "Si yo ___ (tener) más dinero, compraría una casa.",
+      accepted: ["tuviera", "tuviese"],
+      hintZh: "不真實條件：Si + imperfecto de subjuntivo",
+      whyZh: "假設條件用 imperfecto de subjuntivo：tuviera（或 tuviese）。",
+    },
+  },
+];

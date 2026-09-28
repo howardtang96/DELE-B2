@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, UserCircle2 } from "lucide-react";
+import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,13 +55,13 @@ export default function TodayMissionPage() {
           <CardContent className="pt-5">
             <div className="mb-1 flex items-center gap-2">
               <Badge variant="primary">Grammar</Badge>
-              <Badge variant="neutral">Recognition</Badge>
+              <Badge variant="neutral">認得 → 產出</Badge>
             </div>
-            <h2 className="mb-1 text-lg font-semibold">Quick 2 · 虛擬式觸發詞</h2>
+            <h2 className="mb-1 text-lg font-semibold">Grammar Drill · 一組 6 題</h2>
             <p className="mb-4 text-sm text-muted-foreground">
-              兩題快速檢索，熱身你嘅語法直覺。約 2 分鐘。
+              溝埋到期複習 + 新題，由揀答案練到自己打西班牙文。約 5 分鐘。
             </p>
-            <Link href="/quick">
+            <Link href="/grammar">
               <Button size="block">
                 Start <ArrowRight className="h-4 w-4" />
               </Button>
@@ -91,6 +91,15 @@ export default function TodayMissionPage() {
           其他模式
         </p>
         <div className="grid grid-cols-2 gap-3">
+          <Link href="/quick">
+            <Card className="h-full transition-colors hover:bg-surface-2">
+              <CardContent className="flex flex-col gap-2 py-4">
+                <Zap className="h-5 w-5 text-primary" />
+                <span className="text-sm font-medium">Quick 2</span>
+                <span className="text-xs text-muted-foreground">快速熱身 · 2 題</span>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/reading">
             <Card className="h-full transition-colors hover:bg-surface-2">
               <CardContent className="flex flex-col gap-2 py-4">

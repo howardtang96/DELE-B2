@@ -29,6 +29,30 @@ export const SKILLS: Skill[] = [
     labelEn: "Discourse connectors",
     labelZh: "連接詞 / 論述銜接",
   },
+  {
+    id: "grammar.por-para",
+    component: "grammar",
+    labelEn: "Por vs Para",
+    labelZh: "Por 同 Para",
+  },
+  {
+    id: "grammar.prepositions",
+    component: "grammar",
+    labelEn: "Prepositions & verb regimen",
+    labelZh: "介系詞 / 動詞搭配",
+  },
+  {
+    id: "grammar.pronouns",
+    component: "grammar",
+    labelEn: "Object pronouns",
+    labelZh: "受詞代名詞",
+  },
+  {
+    id: "grammar.conditional",
+    component: "grammar",
+    labelEn: "Conditional & if-clauses",
+    labelZh: "條件句 (si)",
+  },
   // Reading strategy
   {
     id: "reading.scan",

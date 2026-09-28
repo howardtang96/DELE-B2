@@ -6,11 +6,11 @@ import { grammarItems } from "@/data/items";
 import { buildSession } from "@/lib/session-builder";
 import { useTrainerStore } from "@/lib/store";
 
-const POOL = grammarItems({ cloze: false }); // recognition warmup
-const COUNT = 2;
+const POOL = grammarItems({ cloze: true }); // recognition + controlled production
+const COUNT = 6;
 
-export default function QuickPage() {
-  // Snapshot the session once at mount so it doesn't reshuffle as answers land.
+export default function GrammarPage() {
+  // Frozen at mount: due reviews first, then new items up the ladder.
   const [items] = React.useState(() =>
     buildSession({
       pool: POOL,
@@ -23,8 +23,8 @@ export default function QuickPage() {
     <PracticeRunner
       items={items}
       mode="quick"
-      title="Quick 2"
-      subtitle="快速檢索 · 語法直覺"
+      title="Grammar Drill"
+      subtitle="認得 → 自己產出 · 一組 6 題"
     />
   );
 }

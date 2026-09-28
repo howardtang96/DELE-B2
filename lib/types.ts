@@ -38,6 +38,14 @@ export interface McPrompt {
   whyZh: string; // concise Cantonese explanation
 }
 
+/** Controlled-production item: the learner types the answer (ladder stage 2). */
+export interface ClozePrompt {
+  stemEs: string; // contains "___" where the answer goes
+  accepted: string[]; // acceptable answers (accent-aware scoring)
+  hintZh?: string; // optional Cantonese hint shown before answering
+  whyZh: string; // explanation shown after answering
+}
+
 export interface ReadingQuestion {
   q: string;
   options: string[];
@@ -77,6 +85,7 @@ export interface ListeningPrompt {
 
 export type ItemPrompt =
   | McPrompt
+  | ClozePrompt
   | ReadingPrompt
   | WritingPrompt
   | ListeningPrompt;

@@ -52,18 +52,22 @@ assert("intervals are 1/3/7/14/30", JSON.stringify([...REVIEW_INTERVALS_DAYS]) =
   assert("dueItems returns only overdue", due.length === 1 && due[0].itemId === "a");
 }
 
-// --- mastery: 3 distinct contexts across >=2 stages ---
+// --- mastery: 3 distinct correct contexts (sessions) ---
 assert(
   "not mastered with 2 contexts",
   evaluateMastery([attempt(1, true, "c1"), attempt(2, true, "c2")]).mastered === false,
 );
 assert(
-  "not mastered if 3 contexts but only 1 stage",
-  evaluateMastery([attempt(1, true, "c1"), attempt(1, true, "c2"), attempt(1, true, "c3")]).mastered === false,
+  "not mastered when 3 correct but same context repeated",
+  evaluateMastery([attempt(1, true, "c1"), attempt(1, true, "c1"), attempt(1, true, "c1")]).mastered === false,
 );
 assert(
-  "mastered with 3 contexts across 2 stages",
-  evaluateMastery([attempt(1, true, "c1"), attempt(2, true, "c2"), attempt(3, true, "c3")]).mastered === true,
+  "mastered with 3 distinct contexts",
+  evaluateMastery([attempt(1, true, "c1"), attempt(1, true, "c2"), attempt(1, true, "c3")]).mastered === true,
+);
+assert(
+  "wrong attempts do not count toward mastery",
+  evaluateMastery([attempt(1, true, "c1"), attempt(1, false, "c2"), attempt(1, false, "c3")]).mastered === false,
 );
 assert(
   "mastery count capped at 3",
