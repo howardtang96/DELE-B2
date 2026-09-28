@@ -12,8 +12,11 @@ export function buildSession(params: {
   reviewStates: Record<string, ReviewState>;
   count: number;
   now?: Date;
+  /** Interleave ladder stages in the fresh set so a session mixes recognition +
+   *  production, instead of all stage-1 first. */
+  interleaveStages?: boolean;
 }): Item[] {
-  const { pool, reviewStates, count, now = new Date() } = params;
+  const { pool, reviewStates, count, now = new Date(), interleaveStages = false } = params;
   const byId = new Map(pool.map((i) => [i.id, i]));
 
   const dueIds = dueItems(Object.values(reviewStates), now)
@@ -22,10 +25,37 @@ export function buildSession(params: {
 
   const seen = new Set(Object.keys(reviewStates));
 
-  const fresh = pool
+  const freshItems = pool
     .filter((i) => !seen.has(i.id))
-    .sort((a, b) => a.ladderStage - b.ladderStage || a.difficulty - b.difficulty)
-    .map((i) => i.id);
+    .sort((a, b) => a.ladderStage - b.ladderStage || a.difficulty - b.difficulty);
+
+  let fresh: string[];
+  if (interleaveStages) {
+    // Round-robin across ladder stages: stage1, stage2, stage1, stage2, …
+    const byStage = new Map<number, Item[]>();
+    for (const i of freshItems) {
+      const arr = byStage.get(i.ladderStage) ?? [];
+      arr.push(i);
+      byStage.set(i.ladderStage, arr);
+    }
+    const stages = [...byStage.keys()].sort((a, b) => a - b);
+    const interleaved: string[] = [];
+    let added = true;
+    while (added) {
+      added = false;
+      for (const s of stages) {
+        const arr = byStage.get(s)!;
+        const next = arr.shift();
+        if (next) {
+          interleaved.push(next.id);
+          added = true;
+        }
+      }
+    }
+    fresh = interleaved;
+  } else {
+    fresh = freshItems.map((i) => i.id);
+  }
 
   const seenNotDue = pool
     .filter((i) => seen.has(i.id) && !dueIds.includes(i.id))
