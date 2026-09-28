@@ -43,15 +43,37 @@ UI (client)                    server route                    Anthropic
   rewrite of the learner's text + a Cantonese change summary, fetched on demand.
 - `lib/llm/client.ts` — client fetch helpers (used by the MC and Writing screens).
 
-## Setup
+## Providers
 
-1. Add to `.env.local`:
-   ```
-   ANTHROPIC_API_KEY=sk-ant-...
-   LLM_MODEL=claude-sonnet-5   # optional; this is the default
-   ```
-2. Restart `npm run dev`. Answer a Quick 2 item or submit in Writing Focus — the
-   explanation / feedback becomes personalised, marked “AI 個人化”.
+Choose with `LLM_PROVIDER`. Only `lib/llm/provider.ts` knows the difference; routes,
+schemas, validation and fallback are provider-agnostic.
+
+- `anthropic` (default) — Anthropic Messages API, forced tool use.
+- `openai` — any OpenAI-compatible `/chat/completions` API. Covers **DeepSeek, xAI
+  (Grok), NVIDIA NIM (Nemotron)**, OpenAI, Groq, OpenRouter, local Ollama/LM Studio.
+  JSON is requested via `response_format` + prompt, then zod-validated (with a loose
+  `{...}` extractor as a safety net for chatty models).
+
+### Setup — Anthropic
+```
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+LLM_MODEL=claude-sonnet-5        # or claude-haiku-4-5-20251001 (cheaper)
+```
+
+### Setup — OpenAI-compatible (DeepSeek / Grok / Nemotron)
+```
+LLM_PROVIDER=openai
+LLM_API_KEY=<your key>
+LLM_BASE_URL=https://api.deepseek.com            # DeepSeek
+LLM_MODEL=deepseek-chat
+# xAI:      LLM_BASE_URL=https://api.x.ai/v1                 LLM_MODEL=grok-3-mini
+# Nemotron: LLM_BASE_URL=https://integrate.api.nvidia.com/v1 LLM_MODEL=nvidia/llama-3.3-nemotron-super-49b-v1
+```
+
+Then restart `npm run dev`. Answer a Quick 2 item or submit in Writing Focus — the
+explanation / feedback / correction becomes personalised, marked “AI 個人化”. Any
+failure (bad key, provider down, non-JSON) silently falls back to seed content.
 
 ## Guarantees / safety
 
