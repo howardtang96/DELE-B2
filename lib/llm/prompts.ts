@@ -105,6 +105,8 @@ no real names, quotes or brands). Rules:
 - 3-4 glosses: pick B2 words/phrases from the passage and give a concise Cantonese meaning;
 - 2-3 comprehension questions (one gist, one detail, optionally one inference), each with
   exactly 3 options and one correct answer;
+- for EACH question, explanationZh = 1 short Cantonese sentence saying why the correct
+  option is right (refer to the passage);
 - strategyZh: 1 short Cantonese reading-strategy tip for this passage.
 Return via the tool.`;
   return { system: ROLE_SYSTEM, user };

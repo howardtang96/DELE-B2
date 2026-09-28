@@ -209,6 +209,11 @@ function ReadingTask({
                 );
               })}
             </div>
+            {submitted && q.explanationZh ? (
+              <p className="mt-2 rounded-[var(--radius-app)] bg-surface-2 p-3 text-sm leading-relaxed text-muted-foreground">
+                {q.explanationZh}
+              </p>
+            ) : null}
           </div>
         ))}
       </div>

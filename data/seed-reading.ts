@@ -33,6 +33,8 @@ export const READING_ITEMS: Item[] = [
             "Menos reuniones",
           ],
           correctIndex: 1,
+          explanationZh:
+            "文中明講「valoran sobre todo la flexibilidad horaria y el ahorro de tiempo」，所以係彈性同慳時間；文中冇提加人工。",
         },
         {
           q: "Según el texto, ¿cuál es una desventaja?",
@@ -42,6 +44,8 @@ export const READING_ITEMS: Item[] = [
             "Hay que viajar más",
           ],
           correctIndex: 0,
+          explanationZh:
+            "文尾講「les cuesta desconectar del trabajo」＝好難抽離工作，就係缺點；賺少啲同要通勤文中都冇講。",
         },
       ],
       strategyZh:

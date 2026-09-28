@@ -59,6 +59,7 @@ export const readingResultSchema = z.object({
         q: z.string().min(1).max(240),
         options: z.array(z.string().min(1).max(200)).min(2).max(5),
         correctIndex: z.number().int().min(0).max(4),
+        explanationZh: z.string().max(300).optional(),
       }),
     )
     .min(1)
@@ -166,8 +167,12 @@ export const readingToolSchema = {
           q: { type: "string" },
           options: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
           correctIndex: { type: "integer", minimum: 0, maximum: 2 },
+          explanationZh: {
+            type: "string",
+            description: "concise Cantonese: why the correct option is right",
+          },
         },
-        required: ["q", "options", "correctIndex"],
+        required: ["q", "options", "correctIndex", "explanationZh"],
         additionalProperties: false,
       },
     },

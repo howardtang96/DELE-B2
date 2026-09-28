@@ -50,6 +50,8 @@ export interface ReadingQuestion {
   q: string;
   options: string[];
   correctIndex: number;
+  /** Concise Cantonese explanation of why the correct answer is right. */
+  explanationZh?: string;
 }
 
 export interface ReadingPrompt {

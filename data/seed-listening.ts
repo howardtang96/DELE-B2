@@ -29,11 +29,15 @@ export const LISTENING_ITEMS: Item[] = [
           q: "¿Cuándo será ahora la reunión?",
           options: ["El viernes a las diez", "El lunes a las diez", "El jueves por la tarde"],
           correctIndex: 1,
+          explanationZh:
+            "留言講「ahora será el lunes a las diez」＝改咗做星期一十點；星期五係舊時間，星期四係截止聯絡日。",
         },
         {
           q: "¿Qué debe traer la persona?",
           options: ["El informe de ventas", "El ordenador", "El contrato"],
           correctIndex: 0,
+          explanationZh:
+            "「trae el informe de ventas」＝帶銷售報告；電腦同合約留言都冇提。",
         },
         {
           q: "¿Qué hay que hacer si no se puede ir?",
@@ -43,6 +47,8 @@ export const LISTENING_ITEMS: Item[] = [
             "No hacer nada",
           ],
           correctIndex: 1,
+          explanationZh:
+            "「Si no puedes venir, llámame antes del jueves」＝唔嚟就要星期四前打畀 Marta；通知 Carlos 係另一件事。",
         },
       ],
       strategyZh:
