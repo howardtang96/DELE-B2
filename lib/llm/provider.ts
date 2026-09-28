@@ -128,6 +128,10 @@ async function callOpenAICompatible<T>(c: StructuredCall<T>): Promise<T | null> 
   const obj = parseJsonLoose(text);
   if (obj === null) return null;
   const parsed = c.schema.safeParse(obj);
+  // Dev-only: surface schema drift so seed fallbacks are not silent while iterating.
+  if (!parsed.success && process.env.NODE_ENV !== "production") {
+    console.error("[llm] output failed validation:", JSON.stringify(parsed.error.issues).slice(0, 300));
+  }
   return parsed.success ? parsed.data : null;
 }
 

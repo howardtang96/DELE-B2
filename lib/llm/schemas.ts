@@ -46,7 +46,7 @@ export const variantClozeSchema = z.object({
 });
 
 // Reading: an original B2 passage on a theme, with glosses + comprehension questions.
-export const readingResultSchema = z.object({
+const readingObjectSchema = z.object({
   titleEs: z.string().min(1).max(160),
   passageEs: z.string().min(1).max(2500),
   glosses: z
@@ -66,6 +66,16 @@ export const readingResultSchema = z.object({
     .max(6),
   strategyZh: z.string().min(1).max(400),
 });
+
+// Tolerate common model naming drift (e.g. `title` → `titleEs`, `passage` → `passageEs`).
+export const readingResultSchema = z.preprocess((val) => {
+  if (val && typeof val === "object") {
+    const o = val as Record<string, unknown>;
+    if (o.titleEs === undefined && typeof o.title === "string") o.titleEs = o.title;
+    if (o.passageEs === undefined && typeof o.passage === "string") o.passageEs = o.passage;
+  }
+  return val;
+}, readingObjectSchema);
 
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
