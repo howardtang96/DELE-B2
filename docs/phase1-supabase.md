@@ -4,6 +4,34 @@ The Supabase layer is **optional and additive**. With no env vars the app is a
 local-only PWA (localStorage). Add the two public env vars and it gains cloud sync
 + auth, with the exact same UI.
 
+---
+
+## ⚡ Quick start (~5 minutes)
+
+1. **Create a project** at [supabase.com](https://supabase.com) → New project.
+   Pick the nearest region (e.g. Southeast Asia · Singapore) and set a DB password
+   (you won't need it for this app). Wait ~1 min for it to provision.
+2. **Run the SQL (one paste):** left sidebar → **SQL Editor** → New query →
+   paste the entire contents of [`supabase/setup.sql`](../supabase/setup.sql) → **Run**.
+   You should see "Success". (It creates tables + RLS + seed; safe to re-run.)
+3. **Allow the login redirect:** **Authentication → URL Configuration** →
+   add `http://localhost:3000/account` under *Redirect URLs* → Save.
+4. **Copy your keys:** **Project Settings → Data API** (or *API*) → copy
+   **Project URL** and the **anon public** key.
+5. **Paste into `.env.local`** (already created for you in the project root):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+   ```
+6. **Restart** `npm run dev`, open the app → tap the account icon (top-right) →
+   `/account` → enter your email → click the magic link in your inbox. Done — your
+   progress now syncs to Supabase.
+
+> Free-tier note: an unused project pauses after ~7 days idle (data is kept; one
+> click to resume). Daily study never triggers it.
+
+---
+
 ## What Phase 1 adds
 
 - `skills` + `items` tables (curriculum, read-only to clients).
