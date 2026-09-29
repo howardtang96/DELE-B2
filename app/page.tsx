@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, BookMarked, UserCircle2 } from "lucide-react";
+import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, BookMarked, ListChecks, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -137,6 +137,17 @@ export default function TodayMissionPage() {
                   Vocab{vocabDue > 0 ? ` · ${vocabDue}` : ""}
                 </span>
                 <span className="text-xs text-muted-foreground">閱讀生字 · 間隔複習</span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/gapfill" className="col-span-2">
+            <Card className="h-full transition-colors hover:bg-surface-2">
+              <CardContent className="flex items-center gap-3 py-4">
+                <ListChecks className="h-5 w-5 text-primary" />
+                <div>
+                  <span className="block text-sm font-medium">Gap-fill · 完形填空</span>
+                  <span className="text-xs text-muted-foreground">DELE Tarea · 語法/詞彙在文中</span>
+                </div>
               </CardContent>
             </Card>
           </Link>

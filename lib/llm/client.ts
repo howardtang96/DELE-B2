@@ -4,7 +4,13 @@
 // back to seed content, so a successful response is always usable. A network failure
 // returns null and the caller keeps its own local seed.
 
-import type { ClozePrompt, FeedbackPoint, McPrompt, ReadingPrompt } from "@/lib/types";
+import type {
+  ClozePrompt,
+  FeedbackPoint,
+  GapfillPrompt,
+  McPrompt,
+  ReadingPrompt,
+} from "@/lib/types";
 
 export interface FeedbackResponse {
   source: "seed" | "llm";
@@ -75,6 +81,27 @@ export async function fetchReadingPassage(theme?: string): Promise<ReadingRespon
     });
     if (!res.ok) return null;
     return (await res.json()) as ReadingResponse;
+  } catch {
+    return null;
+  }
+}
+
+export interface GapfillResponse {
+  source: "seed" | "llm";
+  theme: string | null;
+  prompt: GapfillPrompt;
+}
+
+/** Fetch a fresh AI-generated DELE gap-fill task. Seed fallback. */
+export async function fetchGapfill(theme?: string): Promise<GapfillResponse | null> {
+  try {
+    const res = await fetch("/api/llm/gapfill", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(theme ? { theme } : {}),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as GapfillResponse;
   } catch {
     return null;
   }

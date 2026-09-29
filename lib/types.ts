@@ -17,7 +17,8 @@ export type ItemType =
   | "transform"
   | "reading"
   | "listening"
-  | "writing";
+  | "writing"
+  | "gapfill";
 
 export type Difficulty = 1 | 2 | 3;
 
@@ -85,12 +86,28 @@ export interface ListeningPrompt {
   timeLimitSec: number;
 }
 
+/** DELE-style gap-fill: a text with numbered blanks (1)…(n), each a 3-option choice. */
+export interface GapfillGap {
+  options: string[];
+  correctIndex: number;
+  explanationZh?: string;
+}
+
+export interface GapfillPrompt {
+  titleEs: string;
+  passageEs: string; // contains (1) (2) … markers where the blanks are
+  gaps: GapfillGap[];
+  strategyZh: string;
+  timeLimitSec: number;
+}
+
 export type ItemPrompt =
   | McPrompt
   | ClozePrompt
   | ReadingPrompt
   | WritingPrompt
-  | ListeningPrompt;
+  | ListeningPrompt
+  | GapfillPrompt;
 
 export interface Item {
   id: string;

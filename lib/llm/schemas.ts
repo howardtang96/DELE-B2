@@ -77,12 +77,39 @@ export const readingResultSchema = z.preprocess((val) => {
   return val;
 }, readingObjectSchema);
 
+// Gap-fill (DELE Tarea 4/5): a text with (1)…(n) markers and one choice per gap.
+const gapfillObjectSchema = z.object({
+  titleEs: z.string().min(1).max(160),
+  passageEs: z.string().min(1).max(2500),
+  gaps: z
+    .array(
+      z.object({
+        options: z.array(z.string().min(1).max(120)).min(2).max(4),
+        correctIndex: z.number().int().min(0).max(3),
+        explanationZh: z.string().max(300).optional(),
+      }),
+    )
+    .min(3)
+    .max(10),
+  strategyZh: z.string().min(1).max(400),
+});
+
+export const gapfillResultSchema = z.preprocess((val) => {
+  if (val && typeof val === "object") {
+    const o = val as Record<string, unknown>;
+    if (o.titleEs === undefined && typeof o.title === "string") o.titleEs = o.title;
+    if (o.passageEs === undefined && typeof o.passage === "string") o.passageEs = o.passage;
+  }
+  return val;
+}, gapfillObjectSchema);
+
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
 export type CorrectResult = z.infer<typeof correctResultSchema>;
 export type VariantMc = z.infer<typeof variantMcSchema>;
 export type VariantCloze = z.infer<typeof variantClozeSchema>;
 export type ReadingResult = z.infer<typeof readingResultSchema>;
+export type GapfillResult = z.infer<typeof gapfillResultSchema>;
 
 // JSON Schemas passed to the model as tool input_schema (kept aligned with the zod
 // schemas above).
@@ -189,5 +216,34 @@ export const readingToolSchema = {
     strategyZh: { type: "string" },
   },
   required: ["titleEs", "passageEs", "glosses", "questions", "strategyZh"],
+  additionalProperties: false,
+} as const;
+
+export const gapfillToolSchema = {
+  type: "object",
+  properties: {
+    titleEs: { type: "string" },
+    passageEs: {
+      type: "string",
+      description: "the text, with (1) (2) (3)… markers where each blank goes",
+    },
+    gaps: {
+      type: "array",
+      minItems: 3,
+      maxItems: 10,
+      items: {
+        type: "object",
+        properties: {
+          options: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+          correctIndex: { type: "integer", minimum: 0, maximum: 2 },
+          explanationZh: { type: "string" },
+        },
+        required: ["options", "correctIndex", "explanationZh"],
+        additionalProperties: false,
+      },
+    },
+    strategyZh: { type: "string" },
+  },
+  required: ["titleEs", "passageEs", "gaps", "strategyZh"],
   additionalProperties: false,
 } as const;

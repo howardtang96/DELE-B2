@@ -6,6 +6,7 @@ import { CLOZE_ITEMS } from "./seed-cloze";
 import { READING_ITEMS } from "./seed-reading";
 import { WRITING_ITEMS } from "./seed-writing";
 import { LISTENING_ITEMS } from "./seed-listening";
+import { GAPFILL_ITEMS } from "./seed-gapfill";
 
 export const ALL_ITEMS: Item[] = [
   ...MC_ITEMS,
@@ -13,6 +14,7 @@ export const ALL_ITEMS: Item[] = [
   ...READING_ITEMS,
   ...WRITING_ITEMS,
   ...LISTENING_ITEMS,
+  ...GAPFILL_ITEMS,
 ];
 
 export const ITEM_BY_ID: Record<string, Item> = Object.fromEntries(

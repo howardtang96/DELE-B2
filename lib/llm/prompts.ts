@@ -112,6 +112,19 @@ Return via the tool.`;
   return { system: ROLE_SYSTEM, user };
 }
 
+export function buildGapfillPrompt(theme: string) {
+  const user = `Create an ORIGINAL DELE B2 "rellenar huecos" (gap-fill) task on the theme
+"${theme}" (a short letter, email or informative text, ~100-150 words). Rules:
+- put 5-6 numbered blanks in the passage as literal markers (1) (2) (3) … in reading order;
+- gaps must test B2 grammar/lexis IN CONTEXT (e.g. por/para, subjunctive triggers,
+  connectors, ser/estar, prepositions, verb tense);
+- for each gap: exactly 3 options, one correct, and explanationZh = 1 short Cantonese
+  reason why it is right;
+- the gaps array MUST be in the same order as the (n) markers;
+- strategyZh: 1 short Cantonese tip. Return via the tool.`;
+  return { system: ROLE_SYSTEM, user };
+}
+
 export function buildFeedbackPrompt(
   prompt: WritingPrompt,
   text: string,

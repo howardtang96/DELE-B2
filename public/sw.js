@@ -1,6 +1,6 @@
 // Minimal service worker for installability + basic offline shell.
 // Phase 0: network-first for navigations, cache fallback. Kept intentionally simple.
-const CACHE = "b2-trainer-v2";
+const CACHE = "b2-trainer-v3";
 const APP_SHELL = [
   "/",
   "/quick",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "/reading",
   "/listening",
   "/vocab",
+  "/gapfill",
   "/writing",
   "/receipt",
   "/progress",

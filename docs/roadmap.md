@@ -41,9 +41,14 @@
   grammar topic — powers unlimited practice in the Grammar Drill (prefetched, seed
   fallback). 17 grammar topics ship as templates.
 - ✅ Reading generator (`/api/llm/reading`): original B2 passages on rotating
-  news/knowledge themes (no scraping, no copied text) + glosses + questions; the
-  Reading screen serves a fresh one each visit with seed fallback.
-- ⏳ Remaining: cache generated content; mine reading glosses into spaced-review vocab.
+  news/knowledge themes (no scraping, no copied text) + glosses + questions + per-
+  question Cantonese explanations; fresh each visit with seed fallback.
+- ✅ Reading glosses → spaced-review **vocab** bank + `/vocab` flashcard review.
+- ✅ DELE **gap-fill** Tarea (`/api/llm/gapfill`, `/gapfill`): original text with
+  numbered blanks, one choice per gap + per-gap explanation, generated fresh (seed
+  fallback).
+- ⏳ Remaining: cache generated content; more DELE task formats (match-statements,
+  sentence-insertion); sync vocab to Supabase.
 
 ## Phase 3 — Reminders & polish (in-PWA)
 - In-app scheduled reminders / notifications (no Telegram, no native app).
