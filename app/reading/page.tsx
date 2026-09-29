@@ -71,6 +71,7 @@ function ReadingTask({
   const router = useRouter();
   const recordAttempt = useTrainerStore((s) => s.recordAttempt);
   const completeSession = useTrainerStore((s) => s.completeSession);
+  const addVocab = useTrainerStore((s) => s.addVocab);
 
   const [answers, setAnswers] = React.useState<(number | null)[]>(
     prompt.questions.map(() => null),
@@ -109,6 +110,8 @@ function ReadingTask({
   }
 
   function finish() {
+    // Mine this passage's glosses into the spaced-review vocab bank.
+    addVocab(prompt.glosses);
     const sessionId = newSessionId();
     const outcome: OutcomeLine = {
       item: ITEM,

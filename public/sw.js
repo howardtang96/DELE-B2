@@ -7,6 +7,7 @@ const APP_SHELL = [
   "/grammar",
   "/reading",
   "/listening",
+  "/vocab",
   "/writing",
   "/receipt",
   "/progress",

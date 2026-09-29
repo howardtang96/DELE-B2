@@ -176,6 +176,13 @@ export interface WritingFeedback {
   source: TextSource;
 }
 
+/** A vocab card mined from reading glosses, reviewed on the spaced schedule. */
+export interface VocabEntry {
+  phrase: string; // Spanish (the key)
+  zh: string; // Cantonese meaning
+  addedAt: string; // ISO
+}
+
 export interface Readiness {
   component: Exclude<Component, "grammar">;
   index: number; // 0..100

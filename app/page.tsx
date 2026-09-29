@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, UserCircle2 } from "lucide-react";
+import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, BookMarked, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,10 +14,12 @@ import { WEEKLY_STATS } from "@/data/seed-progress";
 export default function TodayMissionPage() {
   const hydrated = useTrainerStore((s) => s.hydrated);
   const reviewStates = useTrainerStore((s) => s.reviewStates);
+  const vocabReview = useTrainerStore((s) => s.vocabReview);
 
   const dueCount = hydrated
     ? dueItems(Object.values(reviewStates)).length
     : WEEKLY_STATS.reviewsDue;
+  const vocabDue = hydrated ? dueItems(Object.values(vocabReview)).length : 0;
   const streak = WEEKLY_STATS.streakDays;
 
   return (
@@ -118,14 +120,23 @@ export default function TodayMissionPage() {
               </CardContent>
             </Card>
           </Link>
-          <Link href="/listening" className="col-span-2">
+          <Link href="/listening">
             <Card className="h-full transition-colors hover:bg-surface-2">
-              <CardContent className="flex items-center gap-3 py-4">
+              <CardContent className="flex flex-col gap-2 py-4">
                 <Headphones className="h-5 w-5 text-primary" />
-                <div>
-                  <span className="block text-sm font-medium">Listening</span>
-                  <span className="text-xs text-muted-foreground">限時聆聽 · 只聽兩次</span>
-                </div>
+                <span className="text-sm font-medium">Listening</span>
+                <span className="text-xs text-muted-foreground">限時聆聽 · 只聽兩次</span>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/vocab">
+            <Card className="h-full transition-colors hover:bg-surface-2">
+              <CardContent className="flex flex-col gap-2 py-4">
+                <BookMarked className="h-5 w-5 text-primary" />
+                <span className="text-sm font-medium">
+                  Vocab{vocabDue > 0 ? ` · ${vocabDue}` : ""}
+                </span>
+                <span className="text-xs text-muted-foreground">閱讀生字 · 間隔複習</span>
               </CardContent>
             </Card>
           </Link>

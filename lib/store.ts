@@ -12,6 +12,7 @@ import type {
   Receipt,
   ReviewState,
   Session,
+  VocabEntry,
 } from "./types";
 import { evaluateMastery } from "./mastery";
 import { initReviewState, scheduleNext } from "./scheduler";
@@ -40,6 +41,10 @@ interface TrainerState {
   sessions: Session[];
   lastReceipt: Receipt | null;
 
+  // Vocab mined from reading glosses, reviewed on the spaced schedule (local-only).
+  vocab: Record<string, VocabEntry>;
+  vocabReview: Record<string, ReviewState>;
+
   recordAttempt: (input: {
     itemId: string;
     stage: LadderStage;
@@ -54,6 +59,11 @@ interface TrainerState {
   attemptsFor: (itemId: string) => Attempt[];
   /** Pull server state into the store (no-op without Supabase + a session). */
   hydrateFromServer: () => Promise<void>;
+
+  /** Add reading glosses as vocab cards (dedupe by phrase). */
+  addVocab: (glosses: { phrase: string; zh: string }[]) => void;
+  /** Self-graded vocab review; advances the spaced schedule. */
+  reviewVocab: (phrase: string, correct: boolean) => void;
 }
 
 export const useTrainerStore = create<TrainerState>()(
@@ -65,6 +75,8 @@ export const useTrainerStore = create<TrainerState>()(
       reviewStates: {},
       sessions: [],
       lastReceipt: null,
+      vocab: {},
+      vocabReview: {},
 
       attemptsFor: (itemId) =>
         get().attempts.filter((a) => a.itemId === itemId),
@@ -124,6 +136,36 @@ export const useTrainerStore = create<TrainerState>()(
           serverSynced: true,
         });
       },
+
+      addVocab: (glosses) => {
+        const state = get();
+        const vocab = { ...state.vocab };
+        const vocabReview = { ...state.vocabReview };
+        let changed = false;
+        for (const g of glosses) {
+          const key = g.phrase.trim();
+          if (!key || vocab[key]) continue;
+          vocab[key] = { phrase: key, zh: g.zh, addedAt: new Date().toISOString() };
+          vocabReview[key] = initReviewState(key);
+          changed = true;
+        }
+        if (changed) set({ vocab, vocabReview });
+      },
+
+      reviewVocab: (phrase, correct) => {
+        const state = get();
+        const prev = state.vocabReview[phrase] ?? initReviewState(phrase);
+        const scheduled = scheduleNext(prev, correct);
+        const masteryCount = correct
+          ? Math.min(3, prev.masteryCount + 1)
+          : prev.masteryCount;
+        set({
+          vocabReview: {
+            ...state.vocabReview,
+            [phrase]: { ...scheduled, masteryCount, mastered: masteryCount >= 3 },
+          },
+        });
+      },
     }),
     {
       name: "spanish-b2-trainer",
@@ -132,6 +174,8 @@ export const useTrainerStore = create<TrainerState>()(
         reviewStates: s.reviewStates,
         sessions: s.sessions,
         lastReceipt: s.lastReceipt,
+        vocab: s.vocab,
+        vocabReview: s.vocabReview,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) state.hydrated = true;
