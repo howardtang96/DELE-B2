@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/shell/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { InstallButton } from "@/components/pwa/InstallButton";
 import { useTrainerStore } from "@/lib/store";
 import { dueItems } from "@/lib/scheduler";
 import { WEEKLY_STATS } from "@/data/seed-progress";
@@ -48,6 +49,8 @@ export default function TodayMissionPage() {
           <Clock className="h-4 w-4" />
           15 分鐘，一步一步嚟。
         </div>
+
+        <InstallButton />
 
         {/* One next-best task */}
         <Card className="mb-4 overflow-hidden">
