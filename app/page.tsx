@@ -12,6 +12,7 @@ import { InstallButton } from "@/components/pwa/InstallButton";
 import { useTrainerStore } from "@/lib/store";
 import { dueItems } from "@/lib/scheduler";
 import { computeProgress } from "@/lib/progress";
+import { pickNextTask } from "@/lib/next-task";
 
 export default function TodayMissionPage() {
   const hydrated = useTrainerStore((s) => s.hydrated);
@@ -28,6 +29,10 @@ export default function TodayMissionPage() {
         ? computeProgress(attempts, reviewStates, sessions, vocabReview).streakDays
         : 0,
     [hydrated, attempts, reviewStates, sessions, vocabReview],
+  );
+  const nextTask = React.useMemo(
+    () => pickNextTask(attempts, reviewStates, sessions, vocabReview),
+    [attempts, reviewStates, sessions, vocabReview],
   );
 
   return (
@@ -68,14 +73,11 @@ export default function TodayMissionPage() {
           </div>
           <CardContent className="pt-5">
             <div className="mb-1 flex items-center gap-2">
-              <Badge variant="primary">Grammar</Badge>
-              <Badge variant="neutral">認得 → 產出</Badge>
+              <Badge variant="primary">{nextTask.tagZh}</Badge>
             </div>
-            <h2 className="mb-1 text-lg font-semibold">Grammar Drill · 一組 6 題</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              溝埋到期複習 + 新題，由揀答案練到自己打西班牙文。約 5 分鐘。
-            </p>
-            <Link href="/grammar">
+            <h2 className="mb-1 text-lg font-semibold">{nextTask.title}</h2>
+            <p className="mb-4 text-sm text-muted-foreground">{nextTask.desc}</p>
+            <Link href={nextTask.href}>
               <Button size="block">
                 Start <ArrowRight className="h-4 w-4" />
               </Button>
