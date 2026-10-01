@@ -31,7 +31,7 @@ create table if not exists public.items (
 create table if not exists public.attempts (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  item_id    text not null references public.items(id),
+  item_id    text not null, -- code owns the curriculum; no FK to items (see 0002)
   stage      smallint not null check (stage between 1 and 4),
   correct    boolean not null,
   error_tags text[] not null default '{}',
@@ -43,7 +43,7 @@ create index if not exists attempts_user_item_idx on public.attempts (user_id, i
 
 create table if not exists public.review_state (
   user_id        uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  item_id        text not null references public.items(id),
+  item_id        text not null, -- code owns the curriculum; no FK to items (see 0002)
   interval_index smallint not null default 0 check (interval_index between 0 and 4),
   next_review_at timestamptz not null,
   mastery_count  smallint not null default 0 check (mastery_count between 0 and 3),
