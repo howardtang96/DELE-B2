@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     title: "B2 Trainer",
   },
   icons: {
-    icon: "/icons/icon.svg",
-    apple: "/icons/icon-192.png",
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
   },
 };
 
