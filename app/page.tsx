@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, BookMarked, ListChecks, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
@@ -10,18 +11,24 @@ import { Button } from "@/components/ui/button";
 import { InstallButton } from "@/components/pwa/InstallButton";
 import { useTrainerStore } from "@/lib/store";
 import { dueItems } from "@/lib/scheduler";
-import { WEEKLY_STATS } from "@/data/seed-progress";
+import { computeProgress } from "@/lib/progress";
 
 export default function TodayMissionPage() {
   const hydrated = useTrainerStore((s) => s.hydrated);
+  const attempts = useTrainerStore((s) => s.attempts);
   const reviewStates = useTrainerStore((s) => s.reviewStates);
+  const sessions = useTrainerStore((s) => s.sessions);
   const vocabReview = useTrainerStore((s) => s.vocabReview);
 
-  const dueCount = hydrated
-    ? dueItems(Object.values(reviewStates)).length
-    : WEEKLY_STATS.reviewsDue;
+  const dueCount = hydrated ? dueItems(Object.values(reviewStates)).length : 0;
   const vocabDue = hydrated ? dueItems(Object.values(vocabReview)).length : 0;
-  const streak = WEEKLY_STATS.streakDays;
+  const streak = React.useMemo(
+    () =>
+      hydrated
+        ? computeProgress(attempts, reviewStates, sessions, vocabReview).streakDays
+        : 0,
+    [hydrated, attempts, reviewStates, sessions, vocabReview],
+  );
 
   return (
     <>
@@ -32,9 +39,11 @@ export default function TodayMissionPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s Mission</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="warning">
-              <Flame className="h-3.5 w-3.5" /> {streak} 日
-            </Badge>
+            {streak > 0 ? (
+              <Badge variant="warning">
+                <Flame className="h-3.5 w-3.5" /> {streak} 日
+              </Badge>
+            ) : null}
             <Link
               href="/account"
               aria-label="Account"
