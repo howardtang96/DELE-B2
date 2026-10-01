@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Clock, Flame, RotateCcw, PenLine, BookOpen, Headphones, Zap, BookMarked, ListChecks, UserCircle2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { BottomNav } from "@/components/shell/BottomNav";
@@ -39,9 +40,19 @@ export default function TodayMissionPage() {
     <>
       <AppShell withBottomNavSpace>
         <header className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">早晨 · 準備好未</p>
-            <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s Mission</h1>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/icons/icon-192.png"
+              alt="DELE B2"
+              width={44}
+              height={44}
+              priority
+              className="h-11 w-11 rounded-2xl border border-border"
+            />
+            <div>
+              <p className="text-sm text-muted-foreground">早晨 · 準備好未</p>
+              <h1 className="text-2xl font-semibold tracking-tight">Today&apos;s Mission</h1>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {streak > 0 ? (
