@@ -27,9 +27,11 @@ type Resolved = { prompt: McPrompt | ClozePrompt; source: "seed" | "llm" };
 
 /**
  * Runs a sequence of MC/cloze items as one session, records attempts (session id =
- * mastery context), then routes to the Learning Receipt. With `useVariants`, each
- * grammar item is swapped for a fresh AI-generated instance of the same topic
- * (prefetched; falls back to the seed item when the LLM is off or slow).
+ * mastery context), then routes to the Learning Receipt. With `useVariants`, fresh
+ * AI variants of each grammar topic are prefetched in parallel on mount. The seed
+ * question shows INSTANTLY (no waiting); a ready variant swaps in before the learner
+ * answers, and the shown prompt is locked once they answer so it never changes under
+ * them. Falls back to seed when the LLM is off or slow.
  */
 export function PracticeRunner({
   items,
@@ -57,27 +59,21 @@ export function PracticeRunner({
   const [index, setIndex] = React.useState(0);
   const outcomes = React.useRef<OutcomeLine[]>([]);
 
-  // Variant resolution (only when useVariants). Prefetch current + next.
+  // Variants resolved from the server, and the prompt locked in once answered.
   const [resolved, setResolved] = React.useState<Record<number, Resolved>>({});
-  const inFlight = React.useRef<Set<number>>(new Set());
+  const [locked, setLocked] = React.useState<Record<number, Resolved>>({});
+  const prefetched = React.useRef(false);
 
   React.useEffect(() => {
-    if (useVariants === false || items.length === 0) return;
-    for (const i of [index, index + 1]) {
-      const it = items[i];
-      if (!it || (it.type !== "mc" && it.type !== "cloze")) continue;
-      if (resolved[i] || inFlight.current.has(i)) continue;
-      inFlight.current.add(i);
+    if (!useVariants || prefetched.current || items.length === 0) return;
+    prefetched.current = true;
+    items.forEach((it, i) => {
+      if (it.type !== "mc" && it.type !== "cloze") return;
       fetchVariant(it.id).then((res) => {
-        setResolved((prev) => ({
-          ...prev,
-          [i]: res
-            ? { prompt: res.prompt, source: res.source }
-            : { prompt: it.prompt as McPrompt | ClozePrompt, source: "seed" },
-        }));
+        if (res) setResolved((prev) => ({ ...prev, [i]: { prompt: res.prompt, source: res.source } }));
       });
-    }
-  }, [index, useVariants, items, resolved]);
+    });
+  }, [useVariants, items]);
 
   if (items.length === 0) {
     return (
@@ -86,7 +82,7 @@ export function PracticeRunner({
         <Card>
           <CardContent className="py-8 text-center">
             <p className="mb-4 text-sm text-muted-foreground">
-              而家冇到期練習，做得好！遲啲再返嚟。
+              而家冇到期練習,做得好!遲啲再返嚟。
             </p>
             <Link href="/">
               <Button>
@@ -101,13 +97,14 @@ export function PracticeRunner({
 
   const item = items[index];
   const isLast = index === items.length - 1;
-  const entry = resolved[index];
-  const waitingVariant = useVariants && !entry;
-  const activePrompt = (entry?.prompt ?? item.prompt) as McPrompt | ClozePrompt;
-  const activeSource = entry?.source ?? "seed";
+  const seedResolved: Resolved = { prompt: item.prompt as McPrompt | ClozePrompt, source: "seed" };
+  // Locked (after answering) wins; else a ready variant; else the instant seed.
+  const active: Resolved =
+    locked[index] ?? (useVariants ? resolved[index] ?? seedResolved : seedResolved);
   const nextLabel = isLast ? "See your receipt" : "Next";
 
   function record(correct: boolean, yourAnswer: string, correctAnswer: string) {
+    setLocked((prev) => (prev[index] ? prev : { ...prev, [index]: active }));
     recordAttempt({
       itemId: item.id,
       stage: item.ladderStage,
@@ -142,27 +139,20 @@ export function PracticeRunner({
     <AppShell>
       <ModeHeader title={title} subtitle={subtitle} step={index + 1} total={items.length} />
 
-      {activeSource === "llm" && !waitingVariant ? (
+      {active.source === "llm" ? (
         <Badge variant="primary" className="mb-3">
           <Sparkles className="h-3.5 w-3.5" /> AI 生成新題
         </Badge>
       ) : null}
 
-      {waitingVariant ? (
-        <div className="space-y-3" aria-label="Loading question">
-          <div className="h-6 w-3/4 animate-pulse rounded bg-surface-2" />
-          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
-          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
-          <div className="h-14 animate-pulse rounded-[var(--radius-app)] bg-surface-2" />
-        </div>
-      ) : item.type === "mc" ? (
+      {item.type === "mc" ? (
         <McQuestion
-          key={item.id}
-          prompt={activePrompt as McPrompt}
+          key={`${item.id}-${active.source}`}
+          prompt={active.prompt as McPrompt}
           itemId={useVariants ? undefined : item.id}
           errorTags={errorTags}
           onAnswered={(chosen, correct) => {
-            const p = activePrompt as McPrompt;
+            const p = active.prompt as McPrompt;
             record(correct, mcAnswerText(p, chosen), mcAnswerText(p, p.correctIndex));
           }}
           onNext={next}
@@ -170,10 +160,10 @@ export function PracticeRunner({
         />
       ) : (
         <ClozeQuestion
-          key={item.id}
-          prompt={activePrompt as ClozePrompt}
+          key={`${item.id}-${active.source}`}
+          prompt={active.prompt as ClozePrompt}
           onAnswered={(correct, answerText) => {
-            const p = activePrompt as ClozePrompt;
+            const p = active.prompt as ClozePrompt;
             record(correct, answerText, p.accepted[0]);
           }}
           onNext={next}
