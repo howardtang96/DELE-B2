@@ -112,6 +112,28 @@ Return via the tool.`;
   return { system: ROLE_SYSTEM, user };
 }
 
+export const LISTENING_CONTEXTS = [
+  "un mensaje de voz personal",
+  "un aviso o anuncio público (estación, aeropuerto, tienda)",
+  "un fragmento de un programa de radio",
+  "un mensaje de una empresa a un cliente",
+  "un breve monólogo sobre la vida diaria",
+] as const;
+
+export function buildListeningPrompt(context: string) {
+  const user = `Write an ORIGINAL short B2 Spanish LISTENING text: ${context} (~70-110 words).
+Rules:
+- natural SPOKEN register, as it would be said aloud; NO stage directions, NO speaker labels,
+  just the words to be read by a text-to-speech voice;
+- 3 comprehension questions (one gist, two detail), each exactly 3 options and one correct;
+- for EACH question, explanationZh = 1 short Cantonese sentence why the correct option is right
+  (quote the relevant words);
+- 3-4 glosses (B2 words → concise Cantonese);
+- strategyZh: 1 short Cantonese listening-strategy tip.
+Return via the tool (field scriptEs = the spoken text).`;
+  return { system: ROLE_SYSTEM, user };
+}
+
 export function buildGapfillPrompt(theme: string) {
   const user = `Create an ORIGINAL DELE B2 "rellenar huecos" (gap-fill) task on the theme
 "${theme}" (a short letter, email or informative text, ~100-150 words). Rules:

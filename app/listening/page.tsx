@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, X } from "lucide-react";
+import { Check, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { ModeHeader } from "@/components/shell/ModeHeader";
+import { PracticeLoading } from "@/components/practice/PracticeLoading";
 import { CantoneseNote } from "@/components/common/CantoneseNote";
 import { AudioPlayer } from "@/components/listening/AudioPlayer";
 import { Button } from "@/components/ui/button";
@@ -13,29 +14,52 @@ import { cn } from "@/lib/utils";
 import { LISTENING_ITEMS } from "@/data/seed-listening";
 import type { ListeningPrompt, Session } from "@/lib/types";
 import { useTrainerStore, newSessionId } from "@/lib/store";
+import { useMounted } from "@/lib/use-mounted";
+import { fetchListening } from "@/lib/llm/client";
 import { buildReceipt, type OutcomeLine } from "@/lib/receipt";
 
-const ITEM = LISTENING_ITEMS[0];
-const PROMPT = ITEM.prompt as ListeningPrompt;
+const ITEM = LISTENING_ITEMS[0]; // tracking/scheduling unit for listening practice
 const CONTEXT = "listening-task";
+const TITLE = "Listening";
+const SUBTITLE = "DELE B2 · 限時聆聽";
 
 export default function ListeningPage() {
+  const mounted = useMounted();
+  const [data, setData] = React.useState<{ prompt: ListeningPrompt; source: "seed" | "llm" } | null>(
+    null,
+  );
+  const started = React.useRef(false);
+
+  React.useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    fetchListening().then((res) => {
+      setData(
+        res
+          ? { prompt: res.prompt, source: res.source }
+          : { prompt: ITEM.prompt as ListeningPrompt, source: "seed" },
+      );
+    });
+  }, []);
+
+  if (!mounted || !data) return <PracticeLoading title={TITLE} subtitle="生成緊聆聽練習…" />;
+  return <ListeningTask prompt={data.prompt} source={data.source} />;
+}
+
+function ListeningTask({ prompt, source }: { prompt: ListeningPrompt; source: "seed" | "llm" }) {
   const router = useRouter();
   const recordAttempt = useTrainerStore((s) => s.recordAttempt);
   const completeSession = useTrainerStore((s) => s.completeSession);
+  const addVocab = useTrainerStore((s) => s.addVocab);
 
-  const [answers, setAnswers] = React.useState<(number | null)[]>(
-    PROMPT.questions.map(() => null),
-  );
+  const [answers, setAnswers] = React.useState<(number | null)[]>(prompt.questions.map(() => null));
   const [submitted, setSubmitted] = React.useState(false);
-  const [started, setStarted] = React.useState(false);
+  const [startedPlaying, setStartedPlaying] = React.useState(false);
   const startedAt = React.useRef(new Date().toISOString());
 
+  const total = prompt.questions.length;
   const allAnswered = answers.every((a) => a !== null);
-  const correctCount = answers.filter(
-    (a, i) => a === PROMPT.questions[i].correctIndex,
-  ).length;
-  const total = PROMPT.questions.length;
+  const correctCount = answers.filter((a, i) => a === prompt.questions[i].correctIndex).length;
 
   function select(qi: number, oi: number) {
     if (submitted) return;
@@ -44,16 +68,18 @@ export default function ListeningPage() {
 
   function submit() {
     setSubmitted(true);
+    const correct = correctCount === total;
     recordAttempt({
       itemId: ITEM.id,
       stage: ITEM.ladderStage,
-      correct: correctCount === total,
-      errorTags: correctCount === total ? [] : ITEM.tags,
+      correct,
+      errorTags: correct ? [] : ITEM.tags,
       context: CONTEXT,
     });
   }
 
   function finish() {
+    addVocab(prompt.glosses);
     const sessionId = newSessionId();
     const outcome: OutcomeLine = {
       item: ITEM,
@@ -76,37 +102,36 @@ export default function ListeningPage() {
 
   return (
     <AppShell>
-      <ModeHeader
-        title="Listening"
-        subtitle="DELE B2 · 限時聆聽"
-        step={submitted ? 2 : 1}
-        total={2}
-      />
+      <ModeHeader title={TITLE} subtitle={SUBTITLE} step={submitted ? 2 : 1} total={2} />
 
       <div className="mb-3 flex items-center justify-between">
-        <Badge variant="neutral">Tarea · Gist &amp; detail</Badge>
-        <span className="text-sm font-medium">{PROMPT.titleEs}</span>
+        <Badge variant="neutral">Gist &amp; detail</Badge>
+        {source === "llm" ? (
+          <Badge variant="primary">
+            <Sparkles className="h-3.5 w-3.5" /> AI 新內容
+          </Badge>
+        ) : null}
       </div>
 
-      <p className="mb-3 text-sm text-muted-foreground">{PROMPT.instructionZh}</p>
+      <p className="mb-3 text-sm text-muted-foreground">{prompt.instructionZh}</p>
 
       <div className="mb-4">
         <AudioPlayer
-          scriptEs={PROMPT.scriptEs}
-          audioUrl={PROMPT.audioUrl}
-          maxPlays={PROMPT.maxPlays}
-          onFirstPlay={() => setStarted(true)}
+          scriptEs={prompt.scriptEs}
+          audioUrl={prompt.audioUrl}
+          maxPlays={prompt.maxPlays}
+          onFirstPlay={() => setStartedPlaying(true)}
         />
       </div>
 
       <div className="mb-4">
-        <CantoneseNote label="策略提示（廣東話）" defaultOpen={!started}>
-          {PROMPT.strategyZh}
+        <CantoneseNote label="策略提示（廣東話）" defaultOpen={!startedPlaying}>
+          {prompt.strategyZh}
         </CantoneseNote>
       </div>
 
       <div className="space-y-4">
-        {PROMPT.questions.map((q, qi) => (
+        {prompt.questions.map((q, qi) => (
           <div key={qi}>
             <p className="mb-2 text-sm font-medium">{q.q}</p>
             <div className="flex flex-col gap-2">
@@ -152,9 +177,22 @@ export default function ListeningPage() {
           <div className="mt-6 rounded-[var(--radius-app)] bg-surface-2 p-4 text-center text-sm">
             你答啱 <span className="font-semibold">{correctCount}</span> / {total}
           </div>
+          {prompt.glosses.length > 0 ? (
+            <div className="mt-4">
+              <CantoneseNote label="生字提示 (加入 Vocab)">
+                <ul className="space-y-1">
+                  {prompt.glosses.map((g) => (
+                    <li key={g.phrase}>
+                      <span className="font-medium text-foreground">{g.phrase}</span> — {g.zh}
+                    </li>
+                  ))}
+                </ul>
+              </CantoneseNote>
+            </div>
+          ) : null}
           <div className="mt-4">
             <CantoneseNote label="文字稿 (transcript)">
-              <p className="leading-relaxed">{PROMPT.scriptEs}</p>
+              <p className="leading-relaxed">{prompt.scriptEs}</p>
             </CantoneseNote>
           </div>
           <Button size="block" className="mt-4" onClick={finish}>

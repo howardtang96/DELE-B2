@@ -103,6 +103,37 @@ export const gapfillResultSchema = z.preprocess((val) => {
   return val;
 }, gapfillObjectSchema);
 
+// Listening: an original short spoken B2 text (voicemail/announcement/monologue).
+const listeningObjectSchema = z.object({
+  titleEs: z.string().min(1).max(160),
+  scriptEs: z.string().min(1).max(2000),
+  glosses: z
+    .array(z.object({ phrase: z.string().min(1).max(80), zh: z.string().min(1).max(160) }))
+    .max(10)
+    .default([]),
+  questions: z
+    .array(
+      z.object({
+        q: z.string().min(1).max(240),
+        options: z.array(z.string().min(1).max(200)).min(2).max(5),
+        correctIndex: z.number().int().min(0).max(4),
+        explanationZh: z.string().max(300).optional(),
+      }),
+    )
+    .min(2)
+    .max(5),
+  strategyZh: z.string().min(1).max(400),
+});
+
+export const listeningResultSchema = z.preprocess((val) => {
+  if (val && typeof val === "object") {
+    const o = val as Record<string, unknown>;
+    if (o.titleEs === undefined && typeof o.title === "string") o.titleEs = o.title;
+    if (o.scriptEs === undefined && typeof o.script === "string") o.scriptEs = o.script;
+  }
+  return val;
+}, listeningObjectSchema);
+
 export type FeedbackResult = z.infer<typeof feedbackResultSchema>;
 export type ExplainResult = z.infer<typeof explainResultSchema>;
 export type CorrectResult = z.infer<typeof correctResultSchema>;
@@ -110,6 +141,7 @@ export type VariantMc = z.infer<typeof variantMcSchema>;
 export type VariantCloze = z.infer<typeof variantClozeSchema>;
 export type ReadingResult = z.infer<typeof readingResultSchema>;
 export type GapfillResult = z.infer<typeof gapfillResultSchema>;
+export type ListeningResult = z.infer<typeof listeningResultSchema>;
 
 // JSON Schemas passed to the model as tool input_schema (kept aligned with the zod
 // schemas above).
@@ -245,5 +277,42 @@ export const gapfillToolSchema = {
     strategyZh: { type: "string" },
   },
   required: ["titleEs", "passageEs", "gaps", "strategyZh"],
+  additionalProperties: false,
+} as const;
+
+export const listeningToolSchema = {
+  type: "object",
+  properties: {
+    titleEs: { type: "string" },
+    scriptEs: { type: "string", description: "the spoken text to be read aloud (no stage directions)" },
+    glosses: {
+      type: "array",
+      maxItems: 6,
+      items: {
+        type: "object",
+        properties: { phrase: { type: "string" }, zh: { type: "string" } },
+        required: ["phrase", "zh"],
+        additionalProperties: false,
+      },
+    },
+    questions: {
+      type: "array",
+      minItems: 2,
+      maxItems: 4,
+      items: {
+        type: "object",
+        properties: {
+          q: { type: "string" },
+          options: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 3 },
+          correctIndex: { type: "integer", minimum: 0, maximum: 2 },
+          explanationZh: { type: "string" },
+        },
+        required: ["q", "options", "correctIndex", "explanationZh"],
+        additionalProperties: false,
+      },
+    },
+    strategyZh: { type: "string" },
+  },
+  required: ["titleEs", "scriptEs", "questions", "strategyZh"],
   additionalProperties: false,
 } as const;

@@ -8,6 +8,7 @@ import type {
   ClozePrompt,
   FeedbackPoint,
   GapfillPrompt,
+  ListeningPrompt,
   McPrompt,
   ReadingPrompt,
 } from "@/lib/types";
@@ -102,6 +103,26 @@ export async function fetchGapfill(theme?: string): Promise<GapfillResponse | nu
     });
     if (!res.ok) return null;
     return (await res.json()) as GapfillResponse;
+  } catch {
+    return null;
+  }
+}
+
+export interface ListeningResponse {
+  source: "seed" | "llm";
+  prompt: ListeningPrompt;
+}
+
+/** Fetch a fresh AI-generated listening task. Seed fallback. */
+export async function fetchListening(context?: string): Promise<ListeningResponse | null> {
+  try {
+    const res = await fetch("/api/llm/listening", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(context ? { context } : {}),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as ListeningResponse;
   } catch {
     return null;
   }
